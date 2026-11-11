@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dualityapp.R
@@ -139,7 +140,7 @@ fun PantallaLogin(vm: ViewModelDuality) {
                 OutlinedTextField(
                     value = correo,
                     onValueChange = { correo = it; mensajeError = null },
-                    label = { Text("Correo del Aventurero") },
+                    label = { Text("Correo del Aventurero", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = DoradoPrimario) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -159,7 +160,7 @@ fun PantallaLogin(vm: ViewModelDuality) {
                 OutlinedTextField(
                     value = contrasena,
                     onValueChange = { contrasena = it; mensajeError = null },
-                    label = { Text("Contraseña Rúnica") },
+                    label = { Text("Contraseña Rúnica", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = DoradoPrimario) },
                     trailingIcon = {
                         IconButton(onClick = { verContrasena = !verContrasena }) {
@@ -193,7 +194,7 @@ fun PantallaLogin(vm: ViewModelDuality) {
                     },
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("⚡ Usar cuenta de prueba", color = DoradoClaro, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text("Usar cuenta de prueba", color = DoradoClaro, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(Modifier.height(12.dp))
@@ -215,7 +216,7 @@ fun PantallaLogin(vm: ViewModelDuality) {
                                     correo = correoLimpio,
                                     pass = passLimpio,
                                     alExito = { vm.mostrarNotificacion("¡Acceso concedido al Gremio!") },
-                                    alError = { err -> mensajeError = "❌ $err" }
+                                    alError = { err -> mensajeError = err }
                                 )
                             }
                         }
@@ -256,6 +257,7 @@ fun PantallaRegistro(vm: ViewModelDuality) {
     var nombre by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
+    var verPass by remember { mutableStateOf(false) }
     var tituloOpcional by remember { mutableStateOf("") }
     var mensajeError by remember { mutableStateOf<String?>(null) }
 
@@ -321,7 +323,7 @@ fun PantallaRegistro(vm: ViewModelDuality) {
                 OutlinedTextField(
                     value = nombre,
                     onValueChange = { nombre = it; mensajeError = null },
-                    label = { Text("Nombre de Aventurero") },
+                    label = { Text("Nombre de Aventurero", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = DoradoPrimario) },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
@@ -339,7 +341,7 @@ fun PantallaRegistro(vm: ViewModelDuality) {
                 OutlinedTextField(
                     value = correo,
                     onValueChange = { correo = it; mensajeError = null },
-                    label = { Text("Correo Electrónico") },
+                    label = { Text("Correo Electrónico", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = DoradoPrimario) },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
@@ -357,9 +359,14 @@ fun PantallaRegistro(vm: ViewModelDuality) {
                 OutlinedTextField(
                     value = pass,
                     onValueChange = { pass = it; mensajeError = null },
-                    label = { Text("Contraseña (Mín. 6 caracteres)") },
+                    label = { Text("Contraseña (Mín. 6 caracteres)", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = DoradoPrimario) },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (verPass) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { verPass = !verPass }) {
+                            Icon(if (verPass) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null, tint = DoradoPrimario)
+                        }
+                    },
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -376,7 +383,7 @@ fun PantallaRegistro(vm: ViewModelDuality) {
                 OutlinedTextField(
                     value = tituloOpcional,
                     onValueChange = { tituloOpcional = it },
-                    label = { Text("Título o Clan (Opcional)") },
+                    label = { Text("Título o Clan (Opcional)", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     placeholder = { Text("Ej. Guardián del Bucle") },
                     leadingIcon = { Icon(Icons.Default.Shield, contentDescription = null, tint = AzulGremio) },
                     singleLine = true,
@@ -413,8 +420,11 @@ fun PantallaRegistro(vm: ViewModelDuality) {
                                     correo = mail,
                                     pass = pwd,
                                     titulo = tituloOpcional.ifBlank { "Explorador Novato" },
-                                    alExito = { vm.mostrarNotificacion("¡Inscripción exitosa en el Gremio!") },
-                                    alError = { err -> mensajeError = "❌ $err" }
+                                    alExito = { 
+                                        vm.mostrarNotificacion("¡Inscripción exitosa en el Gremio!") 
+                                        vm.pantallaAcceso = "LOGIN" // Redirige al login de inmediato
+                                    },
+                                    alError = { err -> mensajeError = err }
                                 )
                             }
                         }
@@ -447,7 +457,6 @@ fun PantallaRegistro(vm: ViewModelDuality) {
 @Composable
 fun PantallaRecuperar(vm: ViewModelDuality) {
     var correo by remember { mutableStateOf("") }
-    var nuevaPass by remember { mutableStateOf("") }
     var mensajeEstado by remember { mutableStateOf<String?>(null) }
     var hayError by remember { mutableStateOf(false) }
 
@@ -515,27 +524,8 @@ fun PantallaRecuperar(vm: ViewModelDuality) {
                 OutlinedTextField(
                     value = correo,
                     onValueChange = { correo = it; mensajeEstado = null },
-                    label = { Text("Correo Registrado ") },
+                    label = { Text("Correo Registrado", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = DoradoPrimario) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = DoradoPrimario,
-                        unfocusedBorderColor = DoradoPrimario.copy(alpha = 0.4f),
-                        focusedLabelColor = DoradoClaro,
-                        unfocusedLabelColor = Color.LightGray
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = nuevaPass,
-                    onValueChange = { nuevaPass = it; mensajeEstado = null },
-                    label = { Text("Nueva Contraseña (Mín. 6) ") },
-                    leadingIcon = { Icon(Icons.Default.Key, contentDescription = null, tint = DoradoPrimario) },
-                    visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -552,20 +542,23 @@ fun PantallaRecuperar(vm: ViewModelDuality) {
                 Button(
                     onClick = {
                         val mail = correo.trim()
-                        val pwd = nuevaPass.trim()
                         when {
-                            mail.isBlank() || pwd.isBlank() -> {
+                            mail.isBlank() || !mail.contains("@") -> {
                                 hayError = true
-                                mensajeEstado = "Todos los campos son obligatorios."
-                            }
-                            pwd.length < 6 -> {
-                                hayError = true
-                                mensajeEstado = "La nueva contraseña debe tener mínimo 6 caracteres."
+                                mensajeEstado = "Por favor, ingresa un correo válido."
                             }
                             else -> {
-                                hayError = false
-                                mensajeEstado = "¡Solicitud de restablecimiento enviada al Reloj Astral!"
-                                vm.mostrarNotificacion("Contraseña actualizada correctamente")
+                                vm.recuperarContrasenaFirebase(
+                                    correo = mail,
+                                    alExito = {
+                                        hayError = false
+                                        mensajeEstado = "Enlace enviado. Revisa tu bandeja de entrada."
+                                    },
+                                    alError = { err -> 
+                                        hayError = true
+                                        mensajeEstado = err
+                                    }
+                                )
                             }
                         }
                     },
@@ -587,7 +580,7 @@ fun PantallaRecuperar(vm: ViewModelDuality) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = DoradoClaro, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Regresar a Iniciar Secion", color = DoradoClaro, fontWeight = FontWeight.Bold)
+                        Text("Regresar a Iniciar Sesión", color = DoradoClaro, fontWeight = FontWeight.Bold)
                     }
                 }
             }

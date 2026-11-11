@@ -94,7 +94,7 @@ class ViewModelDuality : ViewModel() {
             mostrarNotificacion("Eliminado de tus pergaminos favoritos")
         } else {
             idsFavoritos.add(id)
-            mostrarNotificacion("⭐ Guardado en tus pergaminos favoritos")
+            mostrarNotificacion("Guardado en tus pergaminos favoritos")
         }
     }
 
@@ -114,14 +114,14 @@ class ViewModelDuality : ViewModel() {
                     )
                     alExito()
                 }
-                .addOnFailureListener { e ->
-                    alError(e.localizedMessage ?: "Error al iniciar sesión")
+                .addOnFailureListener { _ ->
+                    alError("Error de autenticación. Verifica tus credenciales o tu conexión.")
                 }
         }
     }
 
     fun registrarseFirebase(nombre: String, correo: String, pass: String, titulo: String, alExito: () -> Unit, alError: (String) -> Unit) {
-        activarAnimacionCarga("Inscribiendo alma en Firebase...") {
+        activarAnimacionCarga("Registrando en el Gremio...") {
             auth.createUserWithEmailAndPassword(correo, pass)
                 .addOnSuccessListener { result ->
                     val firebaseUser = result.user
@@ -139,8 +139,8 @@ class ViewModelDuality : ViewModel() {
                     usuarioActual = nuevoUsuario
                     alExito()
                 }
-                .addOnFailureListener { e ->
-                    alError(e.localizedMessage ?: "Error en el registro")
+                .addOnFailureListener { _ ->
+                    alError("Error al registrar. Verifica tu conexión o si el correo ya está en uso.")
                 }
         }
     }
@@ -150,6 +150,44 @@ class ViewModelDuality : ViewModel() {
         usuarioActual = null
         pestanaActualInferior = 0
         mostrarNotificacion("Sesión cerrada correctamente")
+    }
+
+    fun actualizarContrasenaFirebase(passActual: String, nuevaPass: String, alExito: () -> Unit, alError: (String) -> Unit) {
+        val user = auth.currentUser
+        
+        if (user != null && user.email != null) {
+            activarAnimacionCarga("Forjando nueva runa de acceso...") {
+                // 1. Creamos la credencial con el correo y la contraseña ACTUAL
+                val credencial = com.google.firebase.auth.EmailAuthProvider.getCredential(user.email!!, passActual)
+                
+                // 2. Reautenticamos al usuario por seguridad
+                user.reauthenticate(credencial)
+                    .addOnSuccessListener {
+                        // 3. Si Firebase confirma que es él, AHORA SÍ actualizamos la contraseña
+                        user.updatePassword(nuevaPass)
+                            .addOnSuccessListener {
+                                usuarioActual?.contrasena = nuevaPass
+                                alExito()
+                            }
+                            .addOnFailureListener { e ->
+                                alError(e.localizedMessage ?: "Error al guardar la nueva contraseña.")
+                            }
+                    }
+                    .addOnFailureListener {
+                        alError(if (esIngles) "Current password is wrong or session expired." else "La contraseña actual es incorrecta o expiró.")
+                    }
+            }
+        } else {
+            alError(if (esIngles) "No active session." else "No hay sesión activa.")
+        }
+    }
+
+    fun recuperarContrasenaFirebase(correo: String, alExito: () -> Unit, alError: (String) -> Unit) {
+        activarAnimacionCarga("Consultando los archivos antiguos...") {
+            auth.sendPasswordResetEmail(correo)
+                .addOnSuccessListener { alExito() }
+                .addOnFailureListener { _ -> alError("Error al enviar el correo. Verifica que la dirección sea correcta.") }
+        }
     }
 
     // =========================================================================

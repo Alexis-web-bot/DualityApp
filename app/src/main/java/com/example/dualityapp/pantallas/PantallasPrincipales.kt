@@ -1,5 +1,8 @@
 package com.example.dualityapp.pantallas
 
+import android.content.Context
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -651,13 +654,16 @@ fun PantallaBiomas(vm: ViewModelDuality) {
 }
 
 // =========================================================================
-// PANTALLA 4: PERFIL DE USUARIO Y CONFIGURACIÓN (BILINGÜE)
+// PANTALLA 4: PERFIL DE USUARIO Y CONFIGURACIÓN (ACTUALIZACIÓN INSTANTÁNEA)
 // =========================================================================
 @Composable
 fun PantallaPerfil(vm: ViewModelDuality) {
     val usuario = vm.usuarioActual ?: return
     val configuracion = LocalConfiguration.current
     val esHorizontal = configuracion.orientation == Configuration.ORIENTATION_LANDSCAPE
+    
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("DualityPrefs", Context.MODE_PRIVATE)
 
     var nuevoNombre by remember(usuario.nombreUsuario) { mutableStateOf(usuario.nombreUsuario) }
     var nuevoTitulo by remember(usuario.tituloOpcional) { mutableStateOf(usuario.tituloOpcional) }
@@ -665,10 +671,41 @@ fun PantallaPerfil(vm: ViewModelDuality) {
     var nuevaPass by remember { mutableStateOf("") }
     var confirmPass by remember { mutableStateOf("") }
 
-    val selectorFoto = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+    // --- EL TRUCO: GATILLO PARA FORZAR EL REDIBUJADO INSTANTÁNEO ---
+    var actualizarFoto by remember { mutableStateOf(0) } 
+
+    // 1. RECUPERAR FOTO AL INICIAR LA PANTALLA
+    LaunchedEffect(usuario.correo) {
+        val fotoGuardada = prefs.getString("foto_${usuario.correo}", "")
+        if (!fotoGuardada.isNullOrEmpty()) {
+            usuario.fotoPerfilUri = fotoGuardada
+            actualizarFoto++ // Avisamos que hay una foto lista
+        }
+    }
+
+    // 2. GUARDAR LA FOTO FÍSICAMENTE EN LA APP
+    val selectorFoto = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            usuario.fotoPerfilUri = uri.toString()
-            vm.mostrarNotificacion(if (vm.esIngles) "📸 Profile photo updated" else "📸 Foto de perfil cargada")
+            try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val file = java.io.File(context.filesDir, "foto_${usuario.correo}.jpg")
+                val outputStream = java.io.FileOutputStream(file)
+                
+                inputStream?.copyTo(outputStream)
+                inputStream?.close()
+                outputStream.close()
+                
+                val rutaLocal = file.absolutePath
+                usuario.fotoPerfilUri = rutaLocal
+                prefs.edit().putString("foto_${usuario.correo}", rutaLocal).apply()
+                
+                // ¡FORZAMOS LA ACTUALIZACIÓN VISUAL AL INSTANTE!
+                actualizarFoto++ 
+                
+                vm.mostrarNotificacion(if (vm.esIngles) "Profile photo saved!" else "¡Foto guardada en tu Grimorio!")
+            } catch (_: Exception) {
+                vm.mostrarNotificacion(if (vm.esIngles) "Error saving photo" else "Error al guardar la foto")
+            }
         }
     }
 
@@ -685,9 +722,37 @@ fun PantallaPerfil(vm: ViewModelDuality) {
         Card(shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = SuperficieOscura), border = BorderStroke(2.dp, DoradoPrimario), modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(20.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 val badge = insignias[usuario.indiceInsignia % insignias.size]
-                Box(modifier = Modifier.size(96.dp).clip(CircleShape).background(Brush.radialGradient(listOf(badge.second, AzulProfundo))).border(3.dp, DoradoClaro, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(badge.third, contentDescription = null, tint = DoradoClaro, modifier = Modifier.size(48.dp))
+                
+                // 3. DIBUJAR LA FOTO DE MANERA OPTIMIZADA
+                Box(
+                    modifier = Modifier.size(96.dp).clip(CircleShape).background(Brush.radialGradient(listOf(badge.second, AzulProfundo))).border(3.dp, DoradoClaro, CircleShape), 
+                    contentAlignment = Alignment.Center
+                ) {
+                    var fotoDibujada = false
+                    val gatilloFuerza = actualizarFoto // Leemos el gatillo para que Compose vigile los cambios
+                    
+                    if (!usuario.fotoPerfilUri.isNullOrEmpty() && gatilloFuerza > 0) {
+                        // Usamos remember para decodificar la imagen rápido sin trabar el hilo de la UI
+                        val bitmap = remember(usuario.fotoPerfilUri, gatilloFuerza) {
+                            android.graphics.BitmapFactory.decodeFile(usuario.fotoPerfilUri)?.asImageBitmap()
+                        }
+                        
+                        if (bitmap != null) {
+                            Image(
+                                bitmap = bitmap, 
+                                contentDescription = "Foto Perfil", 
+                                modifier = Modifier.fillMaxSize(), 
+                                contentScale = ContentScale.Crop
+                            )
+                            fotoDibujada = true
+                        }
+                    }
+                    
+                    if (!fotoDibujada) {
+                        Icon(badge.third, contentDescription = null, tint = DoradoClaro, modifier = Modifier.size(48.dp))
+                    }
                 }
+                
                 Spacer(Modifier.height(10.dp))
                 Text(usuario.nombreUsuario, fontSize = 22.sp, fontWeight = FontWeight.Black, color = DoradoClaro, fontFamily = FontFamily.Serif)
                 Text(if (vm.esIngles && usuario.tituloOpcional == "Explorador del Gremio") "Guild Explorer" else usuario.tituloOpcional, fontSize = 12.sp, color = DoradoPrimario, fontWeight = FontWeight.Bold)
@@ -707,7 +772,7 @@ fun PantallaPerfil(vm: ViewModelDuality) {
             }
         }
 
-        // --- NUEVO: TARJETA DE AJUSTES (IDIOMA) ---
+        // --- TARJETA DE AJUSTES (IDIOMA) ---
         Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = FondoTarjeta), border = BorderStroke(1.5.dp, DoradoPrimario.copy(alpha = 0.7f)), modifier = Modifier.fillMaxWidth()) {
             Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -726,7 +791,7 @@ fun PantallaPerfil(vm: ViewModelDuality) {
             }
         }
 
-        // --- FORMULARIOS (Pasando el idioma) ---
+        // --- FORMULARIOS ---
         if (esHorizontal) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.weight(1f)) { TarjetaCambioNombre(vm, usuario, nuevoNombre, { nuevoNombre = it }, nuevoTitulo, { nuevoTitulo = it }) }
@@ -758,18 +823,18 @@ fun PantallaPerfil(vm: ViewModelDuality) {
 fun TarjetaCambioNombre(vm: ViewModelDuality, usuario: CuentaUsuario, nuevoNombre: String, onNombre: (String) -> Unit, nuevoTitulo: String, onTitulo: (String) -> Unit) {
     Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = FondoTarjeta), border = BorderStroke(1.5.dp, DoradoPrimario.copy(alpha = 0.7f)), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(if (vm.esIngles) "✏️ Edit Name and Title" else "✏️ Modificar Nombre y Título", color = DoradoClaro, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(if (vm.esIngles) "Edit Name and Title" else "Modificar Nombre y Título", color = DoradoClaro, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             
             OutlinedTextField(value = nuevoNombre, onValueChange = onNombre, label = { Text(if (vm.esIngles) "New Name *" else "Nuevo Nombre *") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = nuevoTitulo, onValueChange = onTitulo, label = { Text(if (vm.esIngles) "Title (Optional)" else "Título (Opcional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             
             Button(
                 onClick = {
-                    if (nuevoNombre.trim().isEmpty()) { vm.mostrarNotificacion(if (vm.esIngles) "⚠️ Name is required." else "⚠️ El nombre es obligatorio.") }
+                    if (nuevoNombre.trim().isEmpty()) { vm.mostrarNotificacion(if (vm.esIngles) "Name is required." else "El nombre es obligatorio.") }
                     else {
                         usuario.nombreUsuario = nuevoNombre.trim()
                         usuario.tituloOpcional = if (nuevoTitulo.isBlank()) (if (vm.esIngles) "Explorer" else "Explorador") else nuevoTitulo.trim()
-                        vm.mostrarNotificacion(if (vm.esIngles) "✅ Name updated." else "✅ Nombre actualizado.")
+                        vm.mostrarNotificacion(if (vm.esIngles) "Name updated." else "Nombre actualizado.")
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = DoradoPrimario, contentColor = AzulProfundo), modifier = Modifier.fillMaxWidth()
@@ -780,24 +845,74 @@ fun TarjetaCambioNombre(vm: ViewModelDuality, usuario: CuentaUsuario, nuevoNombr
 
 @Composable
 fun TarjetaCambioPass(vm: ViewModelDuality, usuario: CuentaUsuario, actual: String, onActual: (String) -> Unit, nueva: String, onNueva: (String) -> Unit, conf: String, onConf: (String) -> Unit) {
+    var verActual by remember { mutableStateOf(false) }
+    var verNueva by remember { mutableStateOf(false) }
+    var verConf by remember { mutableStateOf(false) }
+
     Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = FondoTarjeta), border = BorderStroke(1.5.dp, DoradoPrimario.copy(alpha = 0.7f)), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(if (vm.esIngles) "🔒 Change Password" else "🔒 Cambiar Contraseña", color = DoradoClaro, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text(if (vm.esIngles) "Change Password" else "Cambiar Contraseña", color = DoradoClaro, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             
-            OutlinedTextField(value = actual, onValueChange = onActual, label = { Text(if (vm.esIngles) "Current Password *" else "Actual *") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = nueva, onValueChange = onNueva, label = { Text(if (vm.esIngles) "New (Min. 6 chars) *" else "Nueva (Mín. 6) *") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = conf, onValueChange = onConf, label = { Text(if (vm.esIngles) "Confirm Password *" else "Confirmar *") }, visualTransformation = PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = actual, 
+                onValueChange = onActual, 
+                label = { Text(if (vm.esIngles) "Current Password *" else "Actual *") }, 
+                visualTransformation = if (verActual) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(), 
+                trailingIcon = {
+                    IconButton(onClick = { verActual = !verActual }) {
+                        Icon(if (verActual) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null, tint = DoradoClaro)
+                    }
+                },
+                singleLine = true, 
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            OutlinedTextField(
+                value = nueva, 
+                onValueChange = onNueva, 
+                label = { Text(if (vm.esIngles) "New (Min. 6 chars) *" else "Nueva (Mín. 6) *") }, 
+                visualTransformation = if (verNueva) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(), 
+                trailingIcon = {
+                    IconButton(onClick = { verNueva = !verNueva }) {
+                        Icon(if (verNueva) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null, tint = DoradoClaro)
+                    }
+                },
+                singleLine = true, 
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            OutlinedTextField(
+                value = conf, 
+                onValueChange = onConf, 
+                label = { Text(if (vm.esIngles) "Confirm Password *" else "Confirmar *") }, 
+                visualTransformation = if (verConf) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(), 
+                trailingIcon = {
+                    IconButton(onClick = { verConf = !verConf }) {
+                        Icon(if (verConf) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null, tint = DoradoClaro)
+                    }
+                },
+                singleLine = true, 
+                modifier = Modifier.fillMaxWidth()
+            )
             
             Button(
                 onClick = {
                     when {
-                        actual.isBlank() || nueva.isBlank() || conf.isBlank() -> vm.mostrarNotificacion(if (vm.esIngles) "⚠️ Fill all fields." else "⚠️ Llena todos los campos.")
-                        actual != usuario.contrasena -> vm.mostrarNotificacion(if (vm.esIngles) "❌ Current password doesn't match." else "❌ La actual no coincide.")
-                        nueva.length < 6 -> vm.mostrarNotificacion(if (vm.esIngles) "⚠️ Minimum 6 characters." else "⚠️ Mínimo 6 caracteres.")
-                        nueva != conf -> vm.mostrarNotificacion(if (vm.esIngles) "⚠️ Passwords don't match." else "⚠️ No coinciden.")
+                        actual.isBlank() || nueva.isBlank() || conf.isBlank() -> vm.mostrarNotificacion(if (vm.esIngles) "Fill all fields." else "Llena todos los campos.")
+                        nueva.length < 6 -> vm.mostrarNotificacion(if (vm.esIngles) "Minimum 6 characters." else "Mínimo 6 caracteres.")
+                        nueva != conf -> vm.mostrarNotificacion(if (vm.esIngles) "Passwords don't match." else "No coinciden.")
                         else -> {
-                            usuario.contrasena = nueva; onActual(""); onNueva(""); onConf("")
-                            vm.mostrarNotificacion(if (vm.esIngles) "✅ Password updated." else "✅ Contraseña actualizada.")
+                            vm.actualizarContrasenaFirebase(
+                                passActual = actual,
+                                nuevaPass = nueva,
+                                alExito = {
+                                    onActual(""); onNueva(""); onConf("")
+                                    vm.mostrarNotificacion(if (vm.esIngles) "Password successfully updated." else "Contraseña actualizada exitosamente.")
+                                },
+                                alError = { err -> 
+                                    vm.mostrarNotificacion(err) 
+                                }
+                            )
                         }
                     }
                 },

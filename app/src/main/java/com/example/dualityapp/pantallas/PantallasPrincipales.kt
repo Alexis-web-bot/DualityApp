@@ -1391,14 +1391,44 @@ fun TarjetaPost(post: ViewModelDuality.PostGremio, vm: ViewModelDuality, onVerRe
                     modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFC7BC8F), RoundedCornerShape(8.dp))
                 )
             } else if (!post.imagenUrl.isNullOrEmpty()) {
-                // IMAGEN DE FIREBASE STORAGE (Coil)
                 Spacer(Modifier.height(12.dp))
-                AsyncImage(
-                    model = post.imagenUrl,
-                    contentDescription = "Imagen del usuario",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFC7BC8F), RoundedCornerShape(8.dp))
-                )
+                if (post.imagenUrl.startsWith("data:image")) {
+                    // IMAGEN EN TEXTO BASE64 DIRECTO DE FIRESTORE
+                    var bitmapDecodificado by remember(post.imagenUrl) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+                    
+                    LaunchedEffect(post.imagenUrl) {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            try {
+                                val base64String = post.imagenUrl.substringAfter("base64,")
+                                val imageBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT)
+                                val decodedBitmap = android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                                bitmapDecodificado = decodedBitmap?.asImageBitmap()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                    
+                    if (bitmapDecodificado != null) {
+                        Image(
+                            bitmap = bitmapDecodificado!!,
+                            contentDescription = "Imagen del usuario",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFC7BC8F), RoundedCornerShape(8.dp))
+                        )
+                    } else {
+                        // Cuadro temporal mientras decodifica
+                        Box(modifier = Modifier.fillMaxWidth().height(180.dp).background(Color(0xFFC7BC8F).copy(alpha = 0.2f), RoundedCornerShape(8.dp)))
+                    }
+                } else {
+                    // IMAGEN POR URL NORMAL (Coil)
+                    AsyncImage(
+                        model = post.imagenUrl,
+                        contentDescription = "Imagen del usuario",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFC7BC8F), RoundedCornerShape(8.dp))
+                    )
+                }
             }
             
             Spacer(Modifier.height(12.dp))

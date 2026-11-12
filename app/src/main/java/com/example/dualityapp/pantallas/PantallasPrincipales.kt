@@ -1214,46 +1214,97 @@ fun PantallaComunidad(vm: ViewModelDuality) {
             }
         }
 
-        // --- 2. DIÁLOGO PARA LEER RESPUESTAS ---
+        // --- 2. DIÁLOGO PARA LEER Y ESCRIBIR RESPUESTAS (REDISEÑO PREMIUM) ---
         if (postSeleccionadoParaRespuestas != null) {
             val post = postSeleccionadoParaRespuestas!!
-            androidx.compose.ui.window.Dialog(onDismissRequest = { postSeleccionadoParaRespuestas = null }) {
+            var textoRespuesta by remember { mutableStateOf("") }
+
+            androidx.compose.ui.window.Dialog(
+                onDismissRequest = { postSeleccionadoParaRespuestas = null },
+                properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+            ) {
                 Card(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF192341)), // Azul profundo web
-                    border = BorderStroke(2.dp, Color(0xFFD4AF37)),
-                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.7f)
+                    border = BorderStroke(2.dp, DoradoPrimario),
+                    modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.85f)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(if (vm.esIngles) "Replies (${post.comentarios.size})" else "Respuestas (${post.comentarios.size})", color = DoradoClaro, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        
+                        // ENCABEZADO
+                        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text(if (vm.esIngles) "Replies (${post.comentarios.size})" else "Respuestas (${post.comentarios.size})", color = DoradoClaro, fontSize = 20.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Serif)
                             IconButton(onClick = { postSeleccionadoParaRespuestas = null }) { Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.LightGray) }
                         }
-                        HorizontalDivider(color = DoradoPrimario.copy(alpha = 0.5f))
-                        Spacer(Modifier.height(16.dp))
+                        HorizontalDivider(color = DoradoPrimario.copy(alpha = 0.4f))
                         
-                        if (post.comentarios.isEmpty()) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(if (vm.esIngles) "No replies yet. Be the first!" else "Aún no hay respuestas. ¡Sé el primero!", color = Color.Gray, fontStyle = FontStyle.Italic)
-                            }
-                        } else {
-                            androidx.compose.foundation.lazy.LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                items(post.comentarios.size) { i ->
-                                    val comentario = post.comentarios[i]
-                                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF2B4171).copy(alpha = 0.5f)), shape = RoundedCornerShape(8.dp)) {
-                                        Column(modifier = Modifier.padding(12.dp).fillMaxWidth()) {
-                                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Icon(comentario.insignia, contentDescription = null, tint = comentario.color, modifier = Modifier.size(14.dp))
-                                                    Spacer(Modifier.width(4.dp))
-                                                    Text(comentario.autor, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        // ZONA DE MENSAJES
+                        Box(modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp)) {
+                            if (post.comentarios.isEmpty()) {
+                                Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color.DarkGray, modifier = Modifier.size(48.dp))
+                                    Spacer(Modifier.height(16.dp))
+                                    Text(if (vm.esIngles) "The silence is absolute." else "El silencio es absoluto.", color = Color.Gray, fontStyle = FontStyle.Italic)
+                                    Text(if (vm.esIngles) "Be the first to reply!" else "¡Sé el primero en responder!", color = DoradoPrimario, fontWeight = FontWeight.Bold)
+                                }
+                            } else {
+                                androidx.compose.foundation.lazy.LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    items(post.comentarios.size) { i ->
+                                        val comentario = post.comentarios[i]
+                                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF2B4171).copy(alpha = 0.3f)), border = BorderStroke(1.dp, Color(0xFF2B4171)), shape = RoundedCornerShape(8.dp)) {
+                                            Column(modifier = Modifier.padding(12.dp).fillMaxWidth()) {
+                                                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Surface(shape = CircleShape, color = Color(0xFF2B4171), modifier = Modifier.size(20.dp)) {
+                                                            Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.padding(4.dp))
+                                                        }
+                                                        Spacer(Modifier.width(8.dp))
+                                                        Text(comentario.autor, color = DoradoClaro, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                                    }
+                                                    Text(comentario.tiempo, color = Color.Gray, fontSize = 10.sp)
                                                 }
-                                                Text(comentario.tiempo, color = Color.LightGray, fontSize = 10.sp)
+                                                Spacer(Modifier.height(8.dp))
+                                                Text(comentario.texto, color = Color.White, fontSize = 13.sp, lineHeight = 18.sp)
                                             }
-                                            Spacer(Modifier.height(6.dp))
-                                            Text(comentario.texto, color = Color(0xFFEEEEEE), fontSize = 12.sp)
                                         }
                                     }
+                                }
+                            }
+                        }
+
+                        // ZONA DE ESCRITURA (Pegada abajo)
+                        Surface(color = Color(0xFF0C0814), modifier = Modifier.fillMaxWidth()) {
+                            Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedTextField(
+                                    value = textoRespuesta,
+                                    onValueChange = { textoRespuesta = it },
+                                    placeholder = { Text(if (vm.esIngles) "Write a reply..." else "Escribe una respuesta...", color = Color.Gray) },
+                                    modifier = Modifier.weight(1f),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = DoradoPrimario,
+                                        unfocusedBorderColor = Color(0xFF334A80),
+                                        focusedTextColor = Color.White,
+                                        unfocusedTextColor = Color.LightGray
+                                    ),
+                                    shape = RoundedCornerShape(24.dp),
+                                    maxLines = 3
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                
+                                IconButton(
+                                    onClick = {
+                                        vm.publicarRespuesta(post.id, textoRespuesta) {
+                                            textoRespuesta = ""
+                                        }
+                                    },
+                                    modifier = Modifier.size(48.dp).background(DoradoPrimario, CircleShape),
+                                    enabled = textoRespuesta.isNotBlank()
+                                ) {
+                                    Icon(Icons.Default.Send, contentDescription = "Enviar", tint = Color(0xFF192341))
                                 }
                             }
                         }

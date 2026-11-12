@@ -447,6 +447,19 @@ class ViewModelDuality : ViewModel() {
                         val fechaStr = "Recientemente" 
                         val fechaStrEn = "Recently"
 
+                        // Leemos la lista de comentarios de Firebase si existe
+                        @Suppress("UNCHECKED_CAST")
+                        val listaComentariosRaw = doc.get("comentarios") as? List<Map<String, Any>> ?: emptyList()
+                        val comentariosMapeados = listaComentariosRaw.map { mapa ->
+                            ComentarioGremio(
+                                autor = mapa["autor"] as? String ?: "Aventurero",
+                                insignia = Icons.Default.Person,
+                                color = Color(0xFF2B4171),
+                                texto = mapa["texto"] as? String ?: "",
+                                tiempo = mapa["tiempo"] as? String ?: "Recientemente"
+                            )
+                        }
+
                         postsComunidadLive.add(
                             PostGremio(
                                 id = doc.id,
@@ -457,7 +470,7 @@ class ViewModelDuality : ViewModel() {
                                 // Si hay una ruta de imagen de Firebase, se manejaría con Coil. Por ahora lo dejamos nulo para las de internet.
                                 imagenAdjuntaRes = null, 
                                 honor = honor,
-                                comentarios = emptyList(), // En el futuro se leerían de una subcolección
+                                comentarios = comentariosMapeados, // <--- AHORA SÍ LEEMOS LOS COMENTARIOS DE FIREBASE
                                 tiempoEs = fechaStr,
                                 tiempoEn = fechaStrEn,
                                 esOficial = esAdmin
@@ -498,5 +511,29 @@ class ViewModelDuality : ViewModel() {
                     alTerminar()
                 }
         }
+    }
+
+    // Función 3: RESPONDER A UN POST
+    fun publicarRespuesta(idPost: String, textoRespuesta: String, alTerminar: () -> Unit) {
+        val usuario = usuarioActual ?: return
+        if (textoRespuesta.isBlank()) return
+
+        val nuevoComentario = mapOf(
+            "autor" to usuario.nombreUsuario,
+            "texto" to textoRespuesta,
+            "tiempo" to if (esIngles) "Just now" else "Justo ahora"
+        )
+
+        // Usamos arrayUnion para agregar el comentario a la lista del post sin borrar los anteriores
+        db.collection("comunidad_posts").document(idPost)
+            .update("comentarios", com.google.firebase.firestore.FieldValue.arrayUnion(nuevoComentario))
+            .addOnSuccessListener {
+                mostrarNotificacion(if (esIngles) "Reply sent!" else "¡Respuesta enviada!")
+                alTerminar()
+            }
+            .addOnFailureListener {
+                mostrarNotificacion(if (esIngles) "Error sending reply." else "Error al enviar.")
+                alTerminar()
+            }
     }
 }

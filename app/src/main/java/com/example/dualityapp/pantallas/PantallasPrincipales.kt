@@ -1192,8 +1192,8 @@ fun PantallaComunidad(vm: ViewModelDuality) {
                                 
                                 Button(
                                     onClick = { 
-                                        // AHORA ENVIAMOS EL TEXTO Y LA RUTA DE LA FOTO A FIREBASE
-                                        vm.publicarEnTablon(textoPost, imagenAdjunta?.toString()) {
+                                        // AHORA ENVIAMOS EL TEXTO Y EL URI DE LA FOTO A FIREBASE
+                                        vm.publicarEnTablon(textoPost, imagenAdjunta) {
                                             textoPost = ""
                                             imagenAdjunta = null
                                             mostrarDialogoCrear = false

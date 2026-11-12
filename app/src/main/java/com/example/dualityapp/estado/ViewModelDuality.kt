@@ -11,6 +11,7 @@ import com.example.dualityapp.datos.*
 import com.example.dualityapp.tema.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -22,6 +23,7 @@ class ViewModelDuality : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
 
     // 1. ESTADOS DE USUARIO
     val usuariosRegistrados = mutableStateListOf(
@@ -481,8 +483,8 @@ class ViewModelDuality : ViewModel() {
             }
     }
 
-    // Función 2: PUBLICAR UN NUEVO MENSAJE (Ahora acepta imágenes)
-    fun publicarEnTablon(mensaje: String, uriImagen: String? = null, alTerminar: () -> Unit) {
+    // Función 2: PUBLICAR UN NUEVO MENSAJE (Ahora con subida física de imágenes a Storage)
+    fun publicarEnTablon(mensaje: String, uriImagen: android.net.Uri? = null, alTerminar: () -> Unit) {
         val usuario = usuarioActual
         if (usuario == null || mensaje.isBlank()) {
             mostrarNotificacion(if (esIngles) "Write a message first." else "Escribe un mensaje primero.")
@@ -490,27 +492,52 @@ class ViewModelDuality : ViewModel() {
         }
 
         activarAnimacionCarga("Enviando cuervo mensajero...") {
-            val nuevoPost = hashMapOf(
-                "autorId" to (auth.currentUser?.uid ?: "unknown"),
-                "autorNombre" to usuario.nombreUsuario,
-                "autorTitulo" to usuario.tituloOpcional,
-                "contenido" to mensaje,
-                "imagenUri" to (uriImagen ?: ""),
-                "honor" to 0,
-                "esOficial" to (usuario.tituloOpcional.lowercase().contains("admin") || usuario.nombreUsuario.lowercase().contains("administrador") || usuario.nombreUsuario.lowercase().contains("zyren")),
-                "timestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp() 
-            )
+            if (uriImagen != null) {
+                // 1. SI HAY IMAGEN, LA SUBIMOS PRIMERO A FIREBASE STORAGE
+                val nombreArchivo = "post_${System.currentTimeMillis()}.jpg"
+                val ref = storage.reference.child("comunidad_imagenes/$nombreArchivo")
 
-            db.collection("comunidad_posts").add(nuevoPost)
-                .addOnSuccessListener {
-                    mostrarNotificacion(if (esIngles) "Post published!" else "¡Mensaje publicado!")
-                    alTerminar()
-                }
-                .addOnFailureListener {
-                    mostrarNotificacion(if (esIngles) "Error publishing." else "Error al publicar.")
-                    alTerminar()
-                }
+                ref.putFile(uriImagen)
+                    .addOnSuccessListener {
+                        // 2. OBTENEMOS EL LINK PÚBLICO DE DESCARGA
+                        ref.downloadUrl.addOnSuccessListener { urlDescarga: android.net.Uri ->
+                            guardarPostFirestore(mensaje, urlDescarga.toString(), alTerminar)
+                        }
+                    }
+                    .addOnFailureListener { e: Exception ->
+                        mostrarNotificacion(if (esIngles) "Error uploading image." else "Error al subir la imagen: ${e.message}")
+                        alTerminar()
+                    }
+            } else {
+                // SI NO HAY IMAGEN, GUARDAMOS EL POST DIRECTO
+                guardarPostFirestore(mensaje, "", alTerminar)
+            }
         }
+    }
+
+    // Función auxiliar para guardar el texto en la base de datos
+    private fun guardarPostFirestore(mensaje: String, urlPublicaImagen: String, alTerminar: () -> Unit) {
+        val usuario = usuarioActual ?: return
+        val nuevoPost = hashMapOf(
+            "autorId" to (auth.currentUser?.uid ?: "unknown"),
+            "autorNombre" to usuario.nombreUsuario,
+            "autorTitulo" to usuario.tituloOpcional,
+            "contenido" to mensaje,
+            "imagenUri" to urlPublicaImagen, // <--- AQUÍ GUARDAMOS EL LINK PÚBLICO
+            "honor" to 0,
+            "esOficial" to (usuario.tituloOpcional.lowercase().contains("admin") || usuario.nombreUsuario.lowercase().contains("administrador") || usuario.nombreUsuario.lowercase().contains("zyren")),
+            "timestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+        )
+
+        db.collection("comunidad_posts").add(nuevoPost)
+            .addOnSuccessListener {
+                mostrarNotificacion(if (esIngles) "Post published!" else "¡Mensaje publicado!")
+                alTerminar()
+            }
+            .addOnFailureListener {
+                mostrarNotificacion(if (esIngles) "Error publishing." else "Error al publicar.")
+                alTerminar()
+            }
     }
 
     // Función 3: RESPONDER A UN POST

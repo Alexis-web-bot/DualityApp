@@ -36,7 +36,9 @@ data class ReinoMapa(
     val descripcion: String,
     val nivel: String,
     val peligros: String,
-    val jefe: String
+    val jefe: String,
+    val posX: Float = 0.5f, // Posición Horizontal (0.0 a 1.0)
+    val posY: Float = 0.5f  // Posición Vertical (0.0 a 1.0)
 )
 
 data class FaseBucle(

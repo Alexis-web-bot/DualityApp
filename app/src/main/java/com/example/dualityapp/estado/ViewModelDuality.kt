@@ -316,30 +316,30 @@ class ViewModelDuality : ViewModel() {
         RegistroWiki("r4", "razas", "Hybrids", "Bestial Races (E.g. Dog/Human)", "Discriminated against in large cities, they often find refuge and total freedom in the Guild's facilities.", "Traits: Adaptive Physique", DoradoPrimario, Icons.Default.Pets)
     )
 
-    // --- 2. MAPA DE REINOS (ESPAÑOL E INGLÉS) ---
+    // --- 2. MAPA DE REINOS (ESPAÑOL E INGLÉS CON COORDENADAS INTERACTIVAS) ---
     private val reinosEs = listOf(
-        ReinoMapa(1, "Kairos", "BOSQUE OCCIDENTAL", "Vigía del Tiempo Quebrado", "Asentamiento fortificado entre pinares espesos. Primer punto de control.", "Rango Bronce (Niv. 5-12)", "Trampas y bestias de sombra.", "Acechador Mayor"),
-        ReinoMapa(2, "Vlaskaya", "CUMBRES NORTE", "Ciudadela de las Agujas", "Custodiada por sierpes aladas en la cordillera oscura.", "Rango Plata (Niv. 15-22)", "Vientos huracanados.", "Arconte de Jade"),
-        ReinoMapa(3, "Silvaris", "VALLE CENTRAL", "Encrucijada de los Ríos", "Rutas comerciales atacadas por la propagación de la corrosión.", "Rango Bronce (Niv. 5-15)", "Miasma tóxico.", "Gólem de Raíz"),
-        ReinoMapa(4, "Shkaldrim", "MINAS DEL NORTE", "Bastión de Escarcha", "Yacimientos donde se forjan armas encantadas.", "Rango Oro (Niv. 20-28)", "Hielo y criaturas de vacío.", "Coloso de Escarcha"),
-        ReinoMapa(5, "Durnhelm", "PÁRAMOS ESTE", "Fortaleza de Hierro", "Antigua capital enana que resiste asedios.", "Rango Oro (Niv. 25-30)", "Magma y corrupción.", "Rey Caído"),
-        ReinoMapa(6, "Valcordia", "ISLA CENTRAL", "Metrópoli de Tensiones", "Capital dividida por la discriminación.", "Rango Plata (Niv. 12-20)", "Conflictos sociales.", "Inquisidor Corrompido"),
-        ReinoMapa(7, "Gorak-Thul", "DESIERTO SUR", "Ruinas Primigenias", "Dunas implacables con criaturas masivas exiliadas.", "Rango Maestro (Niv. 30-35)", "Tormentas de arena.", "Gusano de las Dunas"),
-        ReinoMapa(8, "Shivara", "PANTANOS SURESTE", "Dominio de las Sombras", "Aguas estancadas, hogar de cultistas.", "Rango Oro (Niv. 28-32)", "Agua altamente tóxica.", "Bruja del Pantano"),
-        ReinoMapa(9, "Lorialis", "ARCHIPIÉLAGO SUR", "Santuario de Coral", "Islas con mareas que traen criaturas del abismo.", "Rango Plata (Niv. 18-25)", "Sirenas oscuras.", "Leviatán Menor"),
-        ReinoMapa(10, "Thalania", "ISLAS DEL ESTE", "Los Reinos Gemelos", "Naciones al borde de la aniquilación por el vacío.", "Rango Maestro (Niv. 35+)", "Anomalías puras.", "Avatar del Bucle")
+        ReinoMapa(1, "Kairos", "BOSQUE OCCIDENTAL", "Vigía del Tiempo Quebrado", "Asentamiento fortificado entre pinares espesos. Primer punto de control.", "Rango Bronce (Niv. 5-12)", "Trampas y bestias de sombra.", "Acechador Mayor", 0.20f, 0.45f),
+        ReinoMapa(2, "Vlaskaya", "CUMBRES NORTE", "Ciudadela de las Agujas", "Custodiada por sierpes aladas en la cordillera oscura.", "Rango Plata (Niv. 15-22)", "Vientos huracanados.", "Arconte de Jade", 0.30f, 0.20f),
+        ReinoMapa(3, "Silvaris", "VALLE CENTRAL", "Encrucijada de los Ríos", "Rutas comerciales atacadas por la propagación de la corrosión.", "Rango Bronce (Niv. 5-15)", "Miasma tóxico.", "Gólem de Raíz", 0.45f, 0.42f),
+        ReinoMapa(4, "Shkaldrim", "MINAS DEL NORTE", "Bastión de Escarcha", "Yacimientos donde se forjan armas encantadas.", "Rango Oro (Niv. 20-28)", "Hielo y criaturas de vacío.", "Coloso de Escarcha", 0.58f, 0.18f),
+        ReinoMapa(5, "Durnhelm", "PÁRAMOS ESTE", "Fortaleza de Hierro", "Antigua capital enana que resiste asedios.", "Rango Oro (Niv. 25-30)", "Magma y corrupción.", "Rey Caído", 0.80f, 0.35f),
+        ReinoMapa(6, "Valcordia", "ISLA CENTRAL", "Metrópoli de Tensiones", "Capital dividida por la discriminación.", "Rango Plata (Niv. 12-20)", "Conflictos sociales.", "Inquisidor Corrompido", 0.52f, 0.52f),
+        ReinoMapa(7, "Gorak-Thul", "DESIERTO SUR", "Ruinas Primigenias", "Dunas implacables con criaturas masivas exiliadas.", "Rango Maestro (Niv. 30-35)", "Tormentas de arena.", "Gusano de las Dunas", 0.25f, 0.78f),
+        ReinoMapa(8, "Shivara", "PANTANOS SURESTE", "Dominio de las Sombras", "Aguas estancadas, hogar de cultistas.", "Rango Oro (Niv. 28-32)", "Agua altamente tóxica.", "Bruja del Pantano", 0.72f, 0.75f),
+        ReinoMapa(9, "Lorialis", "ARCHIPIÉLAGO SUR", "Santuario de Coral", "Islas con mareas que traen criaturas del abismo.", "Rango Plata (Niv. 18-25)", "Sirenas oscuras.", "Leviatán Menor", 0.48f, 0.82f),
+        ReinoMapa(10, "Thalania", "ISLAS DEL ESTE", "Los Reinos Gemelos", "Naciones al borde de la aniquilación por el vacío.", "Rango Maestro (Niv. 35+)", "Anomalías puras.", "Avatar del Bucle", 0.85f, 0.58f)
     )
     private val reinosEn = listOf(
-        ReinoMapa(1, "Kairos", "WESTERN FOREST", "Watcher of Broken Time", "Fortified settlement among thick pine forests. First checkpoint.", "Bronze Rank (Lv. 5-12)", "Traps & shadow beasts.", "Major Stalker"),
-        ReinoMapa(2, "Vlaskaya", "NORTHERN PEAKS", "Citadel of Spires", "Guarded by winged serpents in the dark mountain range.", "Silver Rank (Lv. 15-22)", "Hurricane winds.", "Jade Archon"),
-        ReinoMapa(3, "Silvaris", "CENTRAL VALLEY", "Crossroads of Rivers", "Trade routes attacked by the spread of corrosion.", "Bronze Rank (Lv. 5-15)", "Toxic miasma.", "Root Golem"),
-        ReinoMapa(4, "Shkaldrim", "NORTHERN MINES", "Frost Bastion", "Deposits where enchanted weapons are forged.", "Gold Rank (Lv. 20-28)", "Ice & void creatures.", "Frost Colossus"),
-        ReinoMapa(5, "Durnhelm", "EASTERN MOORS", "Iron Fortress", "Ancient dwarven capital resisting sieges.", "Gold Rank (Lv. 25-30)", "Magma & corruption.", "Fallen King"),
-        ReinoMapa(6, "Valcordia", "CENTRAL ISLAND", "Metropolis of Tensions", "Capital divided by discrimination.", "Silver Rank (Lv. 12-20)", "Social conflicts.", "Corrupted Inquisitor"),
-        ReinoMapa(7, "Gorak-Thul", "SOUTHERN DESERT", "Primeval Ruins", "Relentless dunes with massive exiled creatures.", "Master Rank (Lv. 30-35)", "Sandstorms.", "Dune Worm"),
-        ReinoMapa(8, "Shivara", "SOUTHEAST SWAMPS", "Domain of Shadows", "Stagnant waters, home to cultists.", "Gold Rank (Lv. 28-32)", "Highly toxic water.", "Swamp Witch"),
-        ReinoMapa(9, "Lorialis", "SOUTHERN ARCHIPELAGO", "Coral Sanctuary", "Islands with tides bringing abyssal creatures.", "Silver Rank (Lv. 18-25)", "Dark sirens.", "Minor Leviathan"),
-        ReinoMapa(10, "Thalania", "EASTERN ISLANDS", "The Twin Realms", "Nations on the brink of annihilation by the void.", "Master Rank (Lv. 35+)", "Pure anomalies.", "Loop Avatar")
+        ReinoMapa(1, "Kairos", "WESTERN FOREST", "Watcher of Broken Time", "Fortified settlement among thick pine forests. First checkpoint.", "Bronze Rank (Lv. 5-12)", "Traps & shadow beasts.", "Major Stalker", 0.20f, 0.45f),
+        ReinoMapa(2, "Vlaskaya", "NORTHERN PEAKS", "Citadel of Spires", "Guarded by winged serpents in the dark mountain range.", "Silver Rank (Lv. 15-22)", "Hurricane winds.", "Jade Archon", 0.30f, 0.20f),
+        ReinoMapa(3, "Silvaris", "CENTRAL VALLEY", "Crossroads of Rivers", "Trade routes attacked by the spread of corrosion.", "Bronze Rank (Lv. 5-15)", "Toxic miasma.", "Root Golem", 0.45f, 0.42f),
+        ReinoMapa(4, "Shkaldrim", "NORTHERN MINES", "Frost Bastion", "Deposits where enchanted weapons are forged.", "Gold Rank (Lv. 20-28)", "Ice & void creatures.", "Frost Colossus", 0.58f, 0.18f),
+        ReinoMapa(5, "Durnhelm", "EASTERN MOORS", "Iron Fortress", "Ancient dwarven capital resisting sieges.", "Gold Rank (Lv. 25-30)", "Magma & corruption.", "Fallen King", 0.80f, 0.35f),
+        ReinoMapa(6, "Valcordia", "CENTRAL ISLAND", "Metropolis of Tensions", "Capital divided by discrimination.", "Silver Rank (Lv. 12-20)", "Social conflicts.", "Corrupted Inquisitor", 0.52f, 0.52f),
+        ReinoMapa(7, "Gorak-Thul", "SOUTHERN DESERT", "Primeval Ruins", "Relentless dunes with massive exiled creatures.", "Master Rank (Lv. 30-35)", "Sandstorms.", "Dune Worm", 0.25f, 0.78f),
+        ReinoMapa(8, "Shivara", "SOUTHEAST SWAMPS", "Domain of Shadows", "Stagnant waters, home to cultists.", "Gold Rank (Lv. 28-32)", "Highly toxic water.", "Swamp Witch", 0.72f, 0.75f),
+        ReinoMapa(9, "Lorialis", "SOUTHERN ARCHIPELAGO", "Coral Sanctuary", "Islands with tides bringing abyssal creatures.", "Silver Rank (Lv. 18-25)", "Dark sirens.", "Minor Leviathan", 0.48f, 0.82f),
+        ReinoMapa(10, "Thalania", "EASTERN ISLANDS", "The Twin Realms", "Nations on the brink of annihilation by the void.", "Master Rank (Lv. 35+)", "Pure anomalies.", "Loop Avatar", 0.85f, 0.58f)
     )
 
     // --- 3. BUCLE Y BIOMAS (ESPAÑOL E INGLÉS) ---

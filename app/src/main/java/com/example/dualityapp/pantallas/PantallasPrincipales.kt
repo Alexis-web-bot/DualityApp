@@ -342,30 +342,45 @@ fun PantallaMapa(vm: ViewModelDuality) {
         
         Spacer(Modifier.height(16.dp))
 
-        // --- CONTENEDOR DEL MAPA (EFECTO DE MARCO DE GALERÍA WEB) ---
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF192341)), // Fondo azul oscuro del paspartú
-            border = BorderStroke(3.dp, Color(0xFFD4AF37)), // Borde dorado fuerte exterior
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        // --- CONTENEDOR DEL MAPA INTERACTIVO CON PINES CLICKABLES ---
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(if (esHorizontal) 2.5f else 1.35f) 
+                .clip(RoundedCornerShape(12.dp))
+                .border(2.dp, Color(0xFFD4AF37), RoundedCornerShape(12.dp))
         ) {
-            Box(
+            val anchoMapa = maxWidth
+            val altoMapa = maxWidth * (if (esHorizontal) 0.45f else 0.72f)
+
+            Image(
+                painter = painterResource(id = com.example.dualityapp.R.drawable.mapa_duality),
+                contentDescription = "Mapa oficial de Duality",
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp) // Este padding crea el espacio azul oscuro entre el borde dorado y el mapa
-            ) {
-                Image(
-                    painter = painterResource(id = com.example.dualityapp.R.drawable.mapa_duality),
-                    contentDescription = "Mapa oficial de Duality",
+                    .fillMaxWidth()
+                    .height(altoMapa),
+                contentScale = ContentScale.Crop
+            )
+
+            vm.mapaReinos.forEachIndexed { index, reino ->
+                val seleccionado = vm.indiceReinoSeleccionado == index
+
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(8.dp)) // Redondea las esquinas de la imagen del mapa
-                        .border(1.dp, Color(0xFF334A80), RoundedCornerShape(8.dp)), // Borde sutil interno del mapa
-                    contentScale = ContentScale.Crop
-                )
+                        .offset(
+                            x = anchoMapa * reino.posX - 16.dp,
+                            y = altoMapa * reino.posY - 32.dp
+                        )
+                        .size(32.dp)
+                        .clickable { vm.indiceReinoSeleccionado = index },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = reino.nombre,
+                        tint = if (seleccionado) Color(0xFFA02020) else Color(0xFFD4AF37),
+                        modifier = Modifier.size(if (seleccionado) 32.dp else 22.dp)
+                    )
+                }
             }
         }
         

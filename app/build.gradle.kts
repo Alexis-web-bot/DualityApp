@@ -62,6 +62,9 @@ dependencies {
     // Firebase BoM (Bill of Materials)
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
 
+    // Carga de imágenes de Internet (Coil)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
     // Autenticación, Base de Datos Firestore y Almacenamiento Storage
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")

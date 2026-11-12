@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import android.content.res.Configuration
 import android.net.Uri
+import coil.compose.AsyncImage
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -1339,17 +1340,29 @@ fun TarjetaPost(post: ViewModelDuality.PostGremio, vm: ViewModelDuality, onVerRe
                         Text(vm.traducirTitulo(post.tituloAutor), color = if (post.esOficial) Color(0xFFA02020) else Color(0xFF334A80), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                     }
                 }
-                Text(if (vm.esIngles) post.tiempoEn else post.tiempoEs, color = Color.DarkGray, fontSize = 10.sp)
+                // AHORA MOSTRAMOS LA FECHA Y HORA REAL
+                Text(post.fechaFormateada, color = Color.DarkGray, fontSize = 10.sp)
             }
             
             Spacer(Modifier.height(12.dp))
             Text(post.mensaje, color = Color(0xFF333333), fontSize = 13.sp, lineHeight = 18.sp, fontFamily = FontFamily.Serif)
             
+            // --- MOSTRAR LA IMAGEN ---
             if (post.imagenAdjuntaRes != null) {
+                // Imagen local (Pruebas)
                 Spacer(Modifier.height(12.dp))
                 Image(
                     painter = painterResource(id = post.imagenAdjuntaRes),
                     contentDescription = "Imagen adjunta",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFC7BC8F), RoundedCornerShape(8.dp))
+                )
+            } else if (!post.imagenUrl.isNullOrEmpty()) {
+                // IMAGEN DE FIREBASE STORAGE (Coil)
+                Spacer(Modifier.height(12.dp))
+                AsyncImage(
+                    model = post.imagenUrl,
+                    contentDescription = "Imagen del usuario",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFC7BC8F), RoundedCornerShape(8.dp))
                 )

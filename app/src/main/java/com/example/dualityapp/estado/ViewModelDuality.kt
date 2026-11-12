@@ -383,25 +383,25 @@ class ViewModelDuality : ViewModel() {
         val avatarUri: String = "",
         val mensaje: String,
         val imagenAdjuntaRes: Int? = null,
+        val imagenUrl: String? = null, // <--- NUEVO: Para imágenes de Firebase
         var honor: Int,
         var comentarios: List<ComentarioGremio> = emptyList(),
-        val tiempoEs: String,
-        val tiempoEn: String,
+        val fechaFormateada: String, // <--- NUEVO: Fecha y hora exacta
         val esOficial: Boolean = false
     )
 
     // Posts de muestra (con Administrador)
     val postsPrueba = listOf(
-        PostGremio("1", "Administrador", "Primordial de Dualidad", "", "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.", null, 156, 
+        PostGremio("1", "Administrador", "Primordial de Dualidad", "", "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.", null, null, 156, 
             listOf(ComentarioGremio("Elizaveta_Fan", Icons.Default.AutoAwesome, AzulGremio, "¡Increíble iniciativa! Estaré compartiendo mis teorías pronto.", "Hace 30 min")), 
-            "Hace 1 hora", "1 hour ago", true),
-        PostGremio("2", "ExploradorNovato", "Iniciado", "", "Ayer estuve cerca del Bosque Occidental (Kairos) y logré tomar esta fotografía de las masas oscuras antes de escapar. ¡Tengan cuidado!", R.drawable.bosque_oscuro_combate, 89, 
+            "01/01/2025 12:00", true),
+        PostGremio("2", "ExploradorNovato", "Iniciado", "", "Ayer estuve cerca del Bosque Occidental (Kairos) y logré tomar esta fotografía de las masas oscuras antes de escapar. ¡Tengan cuidado!", R.drawable.bosque_oscuro_combate, null, 89, 
             listOf(
                 ComentarioGremio("Rasku_Pro", Icons.Default.Bolt, EsmeraldaGremio, "Hermano, tuviste suerte de salir vivo de ahí. Esas cosas son letales.", "Hace 2 horas"),
                 ComentarioGremio("Gral_Calabaza", Icons.Default.Shield, RojoCinta, "Eviten esa zona por ahora. Enviaremos un escuadrón de limpieza.", "Hace 1 hora")
             ), 
-            "Hace 3 horas", "3 hours ago"),
-        PostGremio("3", "Elizaveta_Fan", "Mago de Agua", "", "Definitivamente la Iglesia de la Creación oculta algo. Si el Dios del Tiempo sabe la verdad, ¿por qué los exorcistas mienten? ¿Qué opinan ustedes?", null, 45, emptyList(), "Hace 5 horas", "5 hours ago")
+            "01/01/2025 10:00"),
+        PostGremio("3", "Elizaveta_Fan", "Mago de Agua", "", "Definitivamente la Iglesia de la Creación oculta algo. Si el Dios del Tiempo sabe la verdad, ¿por qué los exorcistas mienten? ¿Qué opinan ustedes?", null, null, 45, emptyList(), "01/01/2025 08:00")
     )
 
     // Inicializamos con los posts de prueba
@@ -429,10 +429,10 @@ class ViewModelDuality : ViewModel() {
                             avatarUri = "",
                             mensaje = if (esIngles) "Welcome to the Guild Board! Here you can share your findings on corrosion, upload screenshots, and look for allies for expeditions." else "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.",
                             imagenAdjuntaRes = null,
-                            honor = 999, // Un número alto de honor para el Admin
+                            imagenUrl = null,
+                            honor = 999,
                             comentarios = emptyList(),
-                            tiempoEs = "📌 Fijado",
-                            tiempoEn = "📌 Pinned",
+                            fechaFormateada = "📌 Fijado",
                             esOficial = true
                         )
                     )
@@ -442,14 +442,19 @@ class ViewModelDuality : ViewModel() {
                         val nombre = doc.getString("autorNombre") ?: "Aventurero"
                         val titulo = doc.getString("autorTitulo") ?: "Iniciado"
                         val mensaje = doc.getString("contenido") ?: ""
-                        val uriImagen = doc.getString("imagenUri") ?: ""
+                        val uriImagen = doc.getString("imagenUri") // Leemos el link de Storage
                         val honor = doc.getLong("honor")?.toInt() ?: 0
                         val esAdmin = doc.getBoolean("esOficial") ?: false
                         
-                        val fechaStr = "Recientemente" 
-                        val fechaStrEn = "Recently"
+                        // OBTENER LA FECHA Y HORA EXACTA DE FIREBASE
+                        val timestamp = doc.getTimestamp("timestamp")
+                        val fechaStr = if (timestamp != null) {
+                            val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+                            sdf.format(timestamp.toDate())
+                        } else {
+                            "Hace un momento"
+                        }
 
-                        // Leemos la lista de comentarios de Firebase si existe
                         @Suppress("UNCHECKED_CAST")
                         val listaComentariosRaw = doc.get("comentarios") as? List<Map<String, Any>> ?: emptyList()
                         val comentariosMapeados = listaComentariosRaw.map { mapa ->
@@ -467,14 +472,13 @@ class ViewModelDuality : ViewModel() {
                                 id = doc.id,
                                 nombreAutor = nombre,
                                 tituloAutor = titulo,
-                                avatarUri = "", // En el futuro aquí iría la foto de perfil del autor
+                                avatarUri = "",
                                 mensaje = mensaje,
-                                // Si hay una ruta de imagen de Firebase, se manejaría con Coil. Por ahora lo dejamos nulo para las de internet.
                                 imagenAdjuntaRes = null, 
+                                imagenUrl = if (uriImagen.isNullOrBlank()) null else uriImagen, // Pasamos el link
                                 honor = honor,
-                                comentarios = comentariosMapeados, // <--- AHORA SÍ LEEMOS LOS COMENTARIOS DE FIREBASE
-                                tiempoEs = fechaStr,
-                                tiempoEn = fechaStrEn,
+                                comentarios = comentariosMapeados,
+                                fechaFormateada = fechaStr, // Pasamos la fecha con hora
                                 esOficial = esAdmin
                             )
                         )

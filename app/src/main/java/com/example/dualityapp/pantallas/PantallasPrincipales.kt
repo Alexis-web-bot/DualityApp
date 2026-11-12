@@ -1121,15 +1121,34 @@ fun PantallaComunidad(vm: ViewModelDuality) {
         // --- 1. DIÁLOGO ESTILO PERGAMINO PARA CREAR POST ---
         if (mostrarDialogoCrear) {
             var textoPost by remember { mutableStateOf("") }
-            
-            // NUEVO: Variable para guardar la foto y el lanzador de la galería
             var imagenAdjunta by remember { mutableStateOf<android.net.Uri?>(null) }
+
+            // Lanzador para abrir la galería una vez concedido el permiso
             val selectorGaleria = androidx.activity.compose.rememberLauncherForActivityResult(
                 androidx.activity.result.contract.ActivityResultContracts.GetContent()
             ) { uri ->
                 imagenAdjunta = uri
             }
-            
+
+            // --- LANZADOR DE PERMISOS DINÁMICO ---
+            val permisoARequerir = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                android.Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+
+            val lanzadorPermisos = androidx.activity.compose.rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+            ) { esConcedido ->
+                if (esConcedido) {
+                    // Si el usuario aceptó, abrimos la galería de inmediato
+                    selectorGaleria.launch("image/*")
+                } else {
+                    // Si rechazó, le avisamos con una notificación sutil
+                    vm.mostrarNotificacion(if (vm.esIngles) "Permission required to attach images." else "Se requiere permiso para adjuntar imágenes.")
+                }
+            }
+
             androidx.compose.ui.window.Dialog(onDismissRequest = { mostrarDialogoCrear = false }) {
                 Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
                     Card(
@@ -1171,8 +1190,10 @@ fun PantallaComunidad(vm: ViewModelDuality) {
                             // Botones de Acción
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 OutlinedButton(
-                                    // AHORA SÍ ABRE LA GALERÍA DEL CELULAR
-                                    onClick = { selectorGaleria.launch("image/*") }, 
+                                    // AL HACER CLIC, VERIFICAMOS O PEDIMOS EL PERMISO PRIMERO
+                                    onClick = { 
+                                        lanzadorPermisos.launch(permisoARequerir)
+                                    }, 
                                     colors = ButtonDefaults.outlinedButtonColors(
                                         containerColor = if (imagenAdjunta != null) Color(0xFF4CAF50).copy(alpha = 0.1f) else Color.Transparent,
                                         contentColor = Color(0xFF2B4171)

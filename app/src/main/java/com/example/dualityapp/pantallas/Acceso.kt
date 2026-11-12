@@ -614,3 +614,61 @@ fun PantallaRecuperar(vm: ViewModelDuality) {
         }
     }
 }
+
+// =========================================================================
+// PANTALLA SPLASH DE BIENVENIDA (PANTALLA DE CARGA INICIAL DUALITY)
+// =========================================================================
+@Composable
+fun PantallaSplash(onTiempoTerminado: () -> Unit) {
+    // LaunchedEffect arranca automáticamente cuando la pantalla se muestra
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(5000L) // 5000 milisegundos = 5 segundos exactos
+        onTiempoTerminado() // Llama a la acción de avanzar al login
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0C0814)), // Fondo ultra oscuro de Aethelgard
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Título de la app
+            Text(
+                text = "DUALITY",
+                color = Color(0xFFD4AF37), // Dorado primario
+                fontSize = 52.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = FontFamily.Serif,
+                letterSpacing = 8.sp
+            )
+            
+            Spacer(Modifier.height(8.dp))
+            
+            Text(
+                text = "OFFICIAL WIKI GRIMOIRE",
+                color = Color.LightGray,
+                fontSize = 12.sp,
+                letterSpacing = 3.sp
+            )
+            
+            Spacer(Modifier.height(64.dp))
+            
+            // Animación circular de carga (Spinner)
+            CircularProgressIndicator(
+                color = Color(0xFFA02020), // Rojo Cinta
+                strokeWidth = 3.dp,
+                modifier = Modifier.size(40.dp)
+            )
+            
+            Spacer(Modifier.height(16.dp))
+            
+            Text(
+                text = "Abriendo el grimorio...",
+                color = Color.Gray,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                fontSize = 14.sp
+            )
+        }
+    }
+}

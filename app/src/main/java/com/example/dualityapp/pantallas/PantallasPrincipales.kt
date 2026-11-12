@@ -374,7 +374,7 @@ fun PantallaMapa(vm: ViewModelDuality) {
         
         Spacer(Modifier.height(8.dp))
 
-        // Footer del mapa
+        // --- 2. INSTRUCCIONES Y REGIÓN ACTIVA ---
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -383,16 +383,18 @@ fun PantallaMapa(vm: ViewModelDuality) {
             Row(modifier = Modifier.weight(0.7f), verticalAlignment = Alignment.Top) {
                 Icon(Icons.Default.Info, contentDescription = null, tint = DoradoPrimario, modifier = Modifier.size(14.dp).padding(top = 2.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Haz clic sobre cualquier número del mapa para inspeccionar el reino", color = Color.LightGray, fontSize = 10.sp, lineHeight = 14.sp)
+                Text(
+                    text = if (vm.esIngles) "Tap any region to inspect the realm" else "Toca cualquier región para inspeccionar el reino", 
+                    color = Color.LightGray, 
+                    fontSize = 10.sp, 
+                    lineHeight = 14.sp
+                )
             }
-            Text(
-                text = "Región Activa:\n${reinoActual.nombre} (${reinoActual.numero}/10)", 
-                color = Color(0xFFEAD48F), 
-                fontSize = 10.sp, 
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.End,
-                modifier = Modifier.weight(0.3f)
-            )
+            
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(0.3f)) {
+                Text(text = if (vm.esIngles) "Active Region:" else "Región Activa:", color = Color(0xFFEAD48F), fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.End)
+                Text(text = "${reinoActual.nombre} (${reinoActual.numero}/10)", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.End)
+            }
         }
 
         Spacer(Modifier.height(24.dp))
@@ -826,8 +828,8 @@ fun PantallaPerfil(vm: ViewModelDuality) {
                 }
                 
                 Spacer(Modifier.height(10.dp))
-                Text(usuario.nombreUsuario, fontSize = 22.sp, fontWeight = FontWeight.Black, color = DoradoClaro, fontFamily = FontFamily.Serif)
-                Text(if (vm.esIngles && usuario.tituloOpcional == "Explorador del Gremio") "Guild Explorer" else usuario.tituloOpcional, fontSize = 12.sp, color = DoradoPrimario, fontWeight = FontWeight.Bold)
+                Text(if (vm.usuarioActual?.nombreUsuario == "Aventurero" && vm.esIngles) "Adventurer" else usuario.nombreUsuario, fontSize = 22.sp, fontWeight = FontWeight.Black, color = DoradoClaro, fontFamily = FontFamily.Serif)
+                Text(vm.traducirTitulo(usuario.tituloOpcional), fontSize = 12.sp, color = DoradoPrimario, fontWeight = FontWeight.Bold)
                 Text(usuario.correo, fontSize = 12.sp, color = Color.LightGray)
 
                 Spacer(Modifier.height(14.dp))
@@ -942,24 +944,40 @@ fun PantallaPerfil(vm: ViewModelDuality) {
 
 @Composable
 fun TarjetaCambioNombre(vm: ViewModelDuality, usuario: CuentaUsuario, nuevoNombre: String, onNombre: (String) -> Unit, nuevoTitulo: String, onTitulo: (String) -> Unit) {
-    Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = FondoTarjeta), border = BorderStroke(1.5.dp, DoradoPrimario.copy(alpha = 0.7f)), modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(if (vm.esIngles) "Edit Name and Title" else "Modificar Nombre y Título", color = DoradoClaro, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            
-            OutlinedTextField(value = nuevoNombre, onValueChange = onNombre, label = { Text(if (vm.esIngles) "New Name *" else "Nuevo Nombre *") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = nuevoTitulo, onValueChange = onTitulo, label = { Text(if (vm.esIngles) "Title (Optional)" else "Título (Opcional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = SuperficieOscura),
+        border = BorderStroke(1.dp, DoradoPrimario.copy(alpha = 0.5f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+            Text(if (vm.esIngles) "Edit Name and Title" else "Editar Nombre y Título", color = DoradoClaro, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(14.dp))
+            OutlinedTextField(
+                value = nuevoNombre, onValueChange = onNombre,
+                label = { Text(if (vm.esIngles) "New Name *" else "Nuevo Nombre *", color = Color.Gray, fontSize = 12.sp) },
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = DoradoPrimario, unfocusedBorderColor = Color.DarkGray, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(10.dp))
+            OutlinedTextField(
+                value = nuevoTitulo, onValueChange = onTitulo,
+                label = { Text(if (vm.esIngles) "Title (Optional)" else "Título (Opcional)", color = Color.Gray, fontSize = 12.sp) },
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = DoradoPrimario, unfocusedBorderColor = Color.DarkGray, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(14.dp))
             Button(
-                onClick = {
-                    if (nuevoNombre.trim().isEmpty()) { vm.mostrarNotificacion(if (vm.esIngles) "Name is required." else "El nombre es obligatorio.") }
-                    else {
-                        usuario.nombreUsuario = nuevoNombre.trim()
-                        usuario.tituloOpcional = if (nuevoTitulo.isBlank()) (if (vm.esIngles) "Explorer" else "Explorador") else nuevoTitulo.trim()
-                        vm.mostrarNotificacion(if (vm.esIngles) "Name updated." else "Nombre actualizado.")
-                    }
+                onClick = { 
+                    usuario.nombreUsuario = nuevoNombre.ifBlank { usuario.nombreUsuario }
+                    usuario.tituloOpcional = nuevoTitulo
+                    vm.mostrarNotificacion(if (vm.esIngles) "Profile updated" else "Perfil actualizado")
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DoradoPrimario, contentColor = AzulProfundo), modifier = Modifier.fillMaxWidth()
-            ) { Text(if (vm.esIngles) "SAVE NAME" else "GUARDAR NOMBRE", fontWeight = FontWeight.Black) }
+                colors = ButtonDefaults.buttonColors(containerColor = DoradoPrimario, contentColor = AzulProfundo),
+                modifier = Modifier.fillMaxWidth()
+            ) { Text(if (vm.esIngles) "SAVE NAME" else "GUARDAR DATOS", fontWeight = FontWeight.Bold) }
         }
     }
 }
@@ -1254,8 +1272,8 @@ fun TarjetaPost(post: ViewModelDuality.PostGremio, vm: ViewModelDuality, onVerRe
                     }
                     Spacer(Modifier.width(10.dp))
                     Column {
-                        Text(post.nombreAutor, color = Color(0xFF222222), fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                        Text(post.tituloAutor, color = if (post.esOficial) Color(0xFFA02020) else Color(0xFF334A80), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Text(if (post.nombreAutor == "Aventurero" && vm.esIngles) "Adventurer" else post.nombreAutor, color = Color(0xFF222222), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(vm.traducirTitulo(post.tituloAutor), color = if (post.esOficial) Color(0xFFA02020) else Color(0xFF334A80), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                     }
                 }
                 Text(if (vm.esIngles) post.tiempoEn else post.tiempoEs, color = Color.DarkGray, fontSize = 10.sp)

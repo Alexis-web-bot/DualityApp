@@ -46,6 +46,22 @@ class ViewModelDuality : ViewModel() {
     // 4. CONFIGURACIÓN DE IDIOMA
     var esIngles by mutableStateOf(false) // false = Español, true = Inglés
 
+    // Traductor automático para títulos traídos desde Firebase
+    fun traducirTitulo(tituloEsp: String): String {
+        if (!esIngles) return tituloEsp
+        
+        return when (tituloEsp.lowercase().trim()) {
+            "aventurero" -> "Adventurer"
+            "explorador novato" -> "Novice Explorer"
+            "explorador del gremio" -> "Guild Explorer"
+            "iniciado" -> "Initiate"
+            "primordial de dualidad" -> "Primordial of Duality"
+            "mago de agua" -> "Water Mage"
+            "administrador" -> "Administrator"
+            else -> tituloEsp // Si no lo reconoce, lo deja igual
+        }
+    }
+
     // 3. ESTADOS DE LA WIKI, MAPA Y BUCLE
     var categoriaWikiSeleccionada by mutableStateOf("personajes")
     var busquedaWiki by mutableStateOf("")

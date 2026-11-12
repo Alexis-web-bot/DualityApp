@@ -358,11 +358,15 @@ class ViewModelDuality : ViewModel() {
 
     private val biomasEs = listOf(
         DiapositivaBioma("Ciudad Oculta", "TUTORIAL", "Kairos (Niv. 1-5)", "Paz Relativa", "Refugio donde humanos e híbridos conviven.", listOf(EsmeraldaGremio, AzulProfundo), R.drawable.bosque_combate),
-        DiapositivaBioma("Caminos Contaminados", "CORROSIÓN", "Valcordia (Niv. 6)", "Masas Oscuras", "Zonas afectadas por el vacío.", listOf(Color(0xFF115E59), AzulProfundo), R.drawable.bosque_oscuro_combate)
+        DiapositivaBioma("Caminos Contaminados", "CORROSIÓN", "Valcordia (Niv. 6)", "Masas Oscuras", "Zonas afectadas por el vacío.", listOf(Color(0xFF115E59), AzulProfundo), R.drawable.bosque_oscuro_combate),
+        DiapositivaBioma("Templo del Tiempo", "MISTERIO", "Silvaris (Niv. 10+)", "Exorcistas", "Antiguo santuario donde la verdad yace oculta bajo capas de mentiras.", listOf(DoradoPrimario, AzulProfundo), R.drawable.cueva_combate),
+        DiapositivaBioma("Núcleo del Vacío", "PELIGRO EXTREMO", "Vlaskaya (Niv. 50+)", "Entidades Primordiales", "El epicentro de la destrucción. La realidad misma se desgarra aquí.", listOf(Color(0xFF4A0000), Color.Black), R.drawable.boss_combate)
     )
     private val biomasEn = listOf(
         DiapositivaBioma("Hidden City", "TUTORIAL", "Kairos (Lv. 1-5)", "Relative Peace", "Refuge where humans and hybrids coexist.", listOf(EsmeraldaGremio, AzulProfundo), R.drawable.bosque_combate),
-        DiapositivaBioma("Contaminated Paths", "CORROSION", "Valcordia (Lv. 6)", "Dark Masses", "Zones affected by the void.", listOf(Color(0xFF115E59), AzulProfundo), R.drawable.bosque_oscuro_combate)
+        DiapositivaBioma("Contaminated Paths", "CORROSION", "Valcordia (Lv. 6)", "Dark Masses", "Zones affected by the void.", listOf(Color(0xFF115E59), AzulProfundo), R.drawable.bosque_oscuro_combate),
+        DiapositivaBioma("Temple of Time", "MYSTERY", "Silvaris (Lv. 10+)", "Exorcists", "Ancient sanctuary where truth lies hidden beneath layers of lies.", listOf(DoradoPrimario, AzulProfundo), R.drawable.cueva_combate),
+        DiapositivaBioma("Void Core", "EXTREME DANGER", "Vlaskaya (Lv. 50+)", "Primordial Entities", "The epicenter of destruction. Reality itself tears apart here.", listOf(Color(0xFF4A0000), Color.Black), R.drawable.boss_combate)
     )
 
     // =========================================================================

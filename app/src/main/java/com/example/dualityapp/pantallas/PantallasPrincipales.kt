@@ -555,165 +555,170 @@ fun DetalleReinoPergamino(reino: ReinoMapa, vm: ViewModelDuality) {
 
 
 // =========================================================================
-// PANTALLA 3: CARRUSEL DE BIOMAS Y BUCLE (100% BILINGÜE Y PULIDA)
+// PANTALLA 3: CARRUSEL DE BIOMAS Y BUCLE (CORRECCIÓN DE PERGAMINO Y NIVELES)
 // =========================================================================
 @Composable
 fun PantallaBiomas(vm: ViewModelDuality) {
     val faseActiva = vm.fasesBucle[vm.indiceFaseBucle]
     val biomaActivo = vm.biomas[vm.indiceBiomaActual]
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    val FormaBanderin = GenericShape { size, _ ->
+        moveTo(0f, 0f)
+        lineTo(size.width, 0f)
+        lineTo(size.width, size.height)
+        lineTo(size.width / 2f, size.height - 15f)
+        lineTo(0f, size.height)
+        close()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
         
-        // --- CARRUSEL DE ESCENARIOS ---
-        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SuperficieOscura), border = BorderStroke(2.dp, DoradoPrimario)) {
+        // --- 1. CARRUSEL DE ESCENARIOS Y NIVELES ---
+        Card(
+            shape = RoundedCornerShape(16.dp), 
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF192341)), // Azul profundo
+            border = BorderStroke(2.dp, Color(0xFFD4AF37))
+        ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    // Título bilingüe
-                    Text(if (vm.esIngles) "SCENARIOS & BIOMES" else "ESCENARIOS Y BIOMAS", color = DoradoClaro, fontWeight = FontWeight.Black, fontSize = 16.sp, fontFamily = FontFamily.Serif)
-                    Text("${vm.indiceBiomaActual + 1} / ${vm.biomas.size}", color = DoradoPrimario, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(if (vm.esIngles) "SCENARIOS & BIOMES" else "ESCENARIOS Y BIOMAS", color = Color(0xFFEAD48F), fontWeight = FontWeight.Black, fontSize = 16.sp, fontFamily = FontFamily.Serif)
+                    Text("${vm.indiceBiomaActual + 1} / ${vm.biomas.size}", color = Color(0xFFD4AF37), fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
                 Spacer(Modifier.height(10.dp))
 
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, DoradoClaro.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
-                ) {
+                // Contenedor de la Imagen del Nivel
+                Box(modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, Color(0xFFEAD48F).copy(alpha = 0.6f), RoundedCornerShape(12.dp))) {
                     if (biomaActivo.imagenRes != null) {
-                        Image(painter = painterResource(id = biomaActivo.imagenRes), contentDescription = biomaActivo.titulo, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                        Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, AzulProfundo.copy(alpha=0.9f)))))
+                        Image(
+                            painter = painterResource(id = biomaActivo.imagenRes), 
+                            contentDescription = biomaActivo.titulo, 
+                            modifier = Modifier.fillMaxSize(), 
+                            contentScale = ContentScale.Crop // Asegura que la imagen del nivel se vea completa y adaptada
+                        )
+                        Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xFF0C0814).copy(alpha=0.9f)))))
                     } else {
                         Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(biomaActivo.coloresGradiente)))
                     }
 
-                    Surface(color = Color.Black.copy(alpha = 0.65f), shape = RoundedCornerShape(50), border = BorderStroke(1.dp, DoradoPrimario), modifier = Modifier.align(Alignment.TopStart).padding(14.dp)) {
-                        Text(biomaActivo.etiqueta, color = DoradoClaro, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                    Surface(color = Color.Black.copy(alpha = 0.7f), shape = RoundedCornerShape(50), border = BorderStroke(1.dp, Color(0xFFD4AF37)), modifier = Modifier.align(Alignment.TopStart).padding(14.dp)) {
+                        Text(biomaActivo.etiqueta, color = Color(0xFFEAD48F), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                     }
 
                     Column(modifier = Modifier.align(Alignment.BottomStart).padding(14.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Surface(color = AzulGremio, shape = RoundedCornerShape(4.dp)) { Text(biomaActivo.reino, color = DoradoClaro, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
-                            Surface(color = RojoCinta, shape = RoundedCornerShape(4.dp)) { Text(biomaActivo.amenaza, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
+                            Surface(color = Color(0xFF2B4171), shape = RoundedCornerShape(4.dp)) { Text(biomaActivo.reino, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
+                            Surface(color = Color(0xFFA02020), shape = RoundedCornerShape(4.dp)) { Text(biomaActivo.amenaza, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) }
                         }
                         Spacer(Modifier.height(4.dp))
-                        Text(biomaActivo.titulo, color = DoradoClaro, fontWeight = FontWeight.Black, fontSize = 18.sp, fontFamily = FontFamily.Serif)
-                        Text(biomaActivo.descripcion, color = Color.White.copy(alpha = 0.9f), fontSize = 11.sp, maxLines = 2)
+                        Text(biomaActivo.titulo, color = Color(0xFFEAD48F), fontWeight = FontWeight.Black, fontSize = 18.sp, fontFamily = FontFamily.Serif)
+                        Text(biomaActivo.descripcion, color = Color.White.copy(alpha = 0.9f), fontSize = 12.sp, maxLines = 2)
                     }
                 }
 
                 Spacer(Modifier.height(14.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    // Botones Anterior/Siguiente bilingües
-                    OutlinedButton(onClick = { vm.indiceBiomaActual = if (vm.indiceBiomaActual == 0) vm.biomas.size - 1 else vm.indiceBiomaActual - 1 }, border = BorderStroke(1.dp, DoradoPrimario)) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = null, tint = DoradoClaro); Text(if (vm.esIngles) "Previous" else "Anterior", color = DoradoClaro)
+                    OutlinedButton(onClick = { vm.indiceBiomaActual = if (vm.indiceBiomaActual == 0) vm.biomas.size - 1 else vm.indiceBiomaActual - 1 }, border = BorderStroke(1.dp, Color(0xFFD4AF37))) {
+                        Icon(Icons.Default.ChevronLeft, contentDescription = null, tint = Color(0xFFEAD48F)); Text(if (vm.esIngles) "Previous" else "Anterior", color = Color(0xFFEAD48F))
                     }
-                    OutlinedButton(onClick = { vm.indiceBiomaActual = (vm.indiceBiomaActual + 1) % vm.biomas.size }, border = BorderStroke(1.dp, DoradoPrimario)) {
-                        Text(if (vm.esIngles) "Next" else "Siguiente", color = DoradoClaro); Icon(Icons.Default.ChevronRight, contentDescription = null, tint = DoradoClaro)
+                    OutlinedButton(onClick = { vm.indiceBiomaActual = (vm.indiceBiomaActual + 1) % vm.biomas.size }, border = BorderStroke(1.dp, Color(0xFFD4AF37))) {
+                        Text(if (vm.esIngles) "Next" else "Siguiente", color = Color(0xFFEAD48F)); Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFFEAD48F))
                     }
                 }
             }
         }
 
-        // --- TARJETA DEL BUCLE (CON ESTILO PERGAMINO WEB) ---
-        Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+        // --- 2. TARJETA DEL BUCLE (PERGAMINO CORREGIDO) ---
+        Box(modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 10.dp)) {
+            
             Card(
-                shape = RoundedCornerShape(0.dp), // Cuadrado para simular papel continuo
+                shape = RoundedCornerShape(0.dp), 
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFEBE1B5)), // Crema Web
-                border = BorderStroke(1.dp, Color(0xFFC7BC8F)), 
+                border = BorderStroke(1.dp, Color(0xFFC7BC8F)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp) // Espacio para rodillos
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(top = 28.dp, start = 20.dp, end = 20.dp, bottom = 28.dp)) {
-                    // Títulos bilingües y oscurecidos para el fondo crema
-                    Text(if (vm.esIngles) "THE TIME LOOP" else "EL BUCLE TEMPORAL", color = Color(0xFF222222), fontWeight = FontWeight.Black, fontSize = 22.sp, fontFamily = FontFamily.Serif)
+                // ¡AQUÍ ESTÁ LA MAGIA! Aumentamos el padding top a 48.dp para esquivar el listón rojo
+                Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 30.dp)) {
+                    
+                    Text(
+                        text = if (vm.esIngles) "THE TIME LOOP" else "EL BUCLE TEMPORAL", 
+                        color = Color(0xFF222222), 
+                        fontWeight = FontWeight.Black, 
+                        fontSize = 22.sp, 
+                        fontFamily = FontFamily.Serif
+                    )
                     Spacer(Modifier.height(4.dp))
-                    Text(if (vm.esIngles) "Tap each phase to check the corrosion progress:" else "Toca cada fase para consultar el avance de la corrosión:", color = Color(0xFF444444), fontSize = 13.sp)
+                    Text(
+                        text = if (vm.esIngles) "Tap each phase to check the corrosion progress:" else "Toca cada fase para consultar el avance de la corrosión:", 
+                        color = Color(0xFF444444), 
+                        fontSize = 12.sp
+                    )
                     Spacer(Modifier.height(16.dp))
 
-                    // Botones de las fases (Solución al texto aplastado)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
                         vm.fasesBucle.forEachIndexed { idx, fase ->
                             val seleccionado = vm.indiceFaseBucle == idx
                             Button(
                                 onClick = { vm.indiceFaseBucle = idx },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (seleccionado) Color(0xFF2B4171) else Color(0xFFDFD4A3), // Azul Web si está activo
+                                    containerColor = if (seleccionado) Color(0xFF2B4171) else Color(0xFFDFD4A3),
                                     contentColor = if (seleccionado) Color.White else Color(0xFF222222)
                                 ),
                                 shape = RoundedCornerShape(6.dp), 
-                                contentPadding = PaddingValues(0.dp), // Evita que el padding interno aplaste el texto
+                                contentPadding = PaddingValues(0.dp),
                                 modifier = Modifier.weight(1f).height(40.dp)
                             ) { 
-                                // Texto en 1 sola línea (maxLines = 1) para que no se parta en "Fase \n III"
                                 Text(if (vm.esIngles) "Phase ${fase.numero}" else "Fase ${fase.numero}", fontWeight = FontWeight.Bold, fontSize = 10.sp, maxLines = 1) 
                             }
                         }
                     }
                     
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(20.dp))
                     
-                    // Caja de Detalles (Estilo Pergamino)
+                    // TARJETA INTERNA OSCURA (Recuperada para dar ese contraste RPG perfecto)
                     Surface(
-                        color = Color(0xFFDFD4A3), // Crema ligeramente más oscuro
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, Color(0xFFC7BC8F)),
+                        color = Color(0xFF192341), // Azul profundo
+                        shape = RoundedCornerShape(8.dp), 
+                        border = BorderStroke(1.dp, Color(0xFFD4AF37)), 
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(faseActiva.tituloCompleto, color = Color(0xFF222222), fontSize = 16.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Serif)
-                                Surface(color = Color(0xFFA02020), shape = RoundedCornerShape(2.dp)) { // Rojo web
-                                    Text(faseActiva.insignia, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                                Text(faseActiva.tituloCompleto, color = Color(0xFFEAD48F), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Surface(color = Color(0xFFA02020), shape = RoundedCornerShape(4.dp)) { 
+                                    Text(faseActiva.insignia, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) 
                                 }
                             }
-                            Spacer(Modifier.height(8.dp))
-                            Text(faseActiva.descripcion, color = Color(0xFF333333), fontSize = 12.sp, lineHeight = 18.sp)
                             Spacer(Modifier.height(10.dp))
-                            HorizontalDivider(color = Color(0xFFC7BC8F).copy(alpha = 0.5f), thickness = 1.dp)
+                            Text(faseActiva.descripcion, color = Color(0xFFEEEEEE), fontSize = 13.sp, lineHeight = 18.sp)
+                            Spacer(Modifier.height(12.dp))
+                            HorizontalDivider(color = Color(0xFFD4AF37).copy(alpha = 0.3f), thickness = 1.dp)
                             Spacer(Modifier.height(8.dp))
-                            Text(if (vm.esIngles) "Status: ${faseActiva.efectoJugabilidad}" else "Estado: ${faseActiva.efectoJugabilidad}", color = Color(0xFF2B4171), fontWeight = FontWeight.Bold, fontSize = 11.sp) // Azul web
+                            Text(if (vm.esIngles) "Status: ${faseActiva.efectoJugabilidad}" else "Estado: ${faseActiva.efectoJugabilidad}", color = Color(0xFFD4AF37), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
-
-            // Rodillo Dorado Superior
-            Surface(
-                color = Color(0xFFEAD48F), // Dorado claro
-                shape = RoundedCornerShape(50), 
-                shadowElevation = 12.dp,
-                modifier = Modifier.fillMaxWidth().height(18.dp).offset(y = 0.dp).padding(horizontal = 4.dp)
-            ) {}
-            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(12.dp).height(24.dp).align(Alignment.TopStart).offset(y = (-3).dp)) {}
-            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(12.dp).height(24.dp).align(Alignment.TopEnd).offset(y = (-3).dp)) {}
-
-            // EL LISTÓN ROJO CON FORMA DE BANDERÍN
-            val FormaBanderin = GenericShape { size, _ ->
-                moveTo(0f, 0f)
-                lineTo(size.width, 0f)
-                lineTo(size.width, size.height)
-                lineTo(size.width / 2f, size.height - 15f) // El corte triangular invertido
-                lineTo(0f, size.height)
-                close()
-            }
-            Surface(
-                color = Color(0xFFA02020), // Rojo profundo web
-                shape = FormaBanderin, // Aplica el recorte en V
-                shadowElevation = 6.dp,
-                modifier = Modifier
-                    .width(36.dp)
-                    .height(50.dp)
-                    .align(Alignment.TopCenter)
-                    .offset(y = 0.dp)
-            ) {}
+            
+            // --- ADORNOS DEL PERGAMINO ---
+            // Rodillo Superior
+            Surface(color = Color(0xFFEAD48F), shape = RoundedCornerShape(50), shadowElevation = 6.dp, modifier = Modifier.fillMaxWidth().height(14.dp).align(Alignment.TopCenter).offset(y = (-7).dp).padding(horizontal = 4.dp)) {}
+            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(10.dp).height(20.dp).align(Alignment.TopStart).offset(y = (-10).dp)) {}
+            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(10.dp).height(20.dp).align(Alignment.TopEnd).offset(y = (-10).dp)) {}
 
             // Rodillo Inferior
-            Surface(
-                color = Color(0xFFEAD48F), // Dorado claro
-                shape = RoundedCornerShape(50), 
-                shadowElevation = 12.dp,
-                modifier = Modifier.fillMaxWidth().height(18.dp).align(Alignment.BottomCenter).offset(y = 0.dp).padding(horizontal = 4.dp)
-            ) {}
-            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(12.dp).height(24.dp).align(Alignment.BottomStart).offset(y = 3.dp)) {}
-            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(12.dp).height(24.dp).align(Alignment.BottomEnd).offset(y = 3.dp)) {}
+            Surface(color = Color(0xFFEAD48F), shape = RoundedCornerShape(50), shadowElevation = 6.dp, modifier = Modifier.fillMaxWidth().height(14.dp).align(Alignment.BottomCenter).offset(y = 7.dp).padding(horizontal = 4.dp)) {}
+            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(10.dp).height(20.dp).align(Alignment.BottomStart).offset(y = 4.dp)) {}
+            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(10.dp).height(20.dp).align(Alignment.BottomEnd).offset(y = 4.dp)) {}
+
+            // Listón Rojo Banderín superior
+            Surface(color = Color(0xFFA02020), shape = FormaBanderin, shadowElevation = 4.dp, modifier = Modifier.width(32.dp).height(46.dp).align(Alignment.TopCenter).offset(y = (-7).dp)) {}
         }
     }
 }
@@ -736,6 +741,7 @@ fun PantallaPerfil(vm: ViewModelDuality) {
     var nuevaPass by remember { mutableStateOf("") }
     var confirmPass by remember { mutableStateOf("") }
     var mostrarDialogoSalir by remember { mutableStateOf(false) }
+    var indiceInsigniaState by remember(usuario.correo) { mutableIntStateOf(usuario.indiceInsignia) }
 
     // --- EL TRUCO: GATILLO PARA FORZAR EL REDIBUJADO INSTANTÁNEO ---
     var actualizarFoto by remember { mutableStateOf(0) } 
@@ -787,7 +793,7 @@ fun PantallaPerfil(vm: ViewModelDuality) {
         // --- TARJETA DE PERFIL ---
         Card(shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = SuperficieOscura), border = BorderStroke(2.dp, DoradoPrimario), modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(20.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                val badge = insignias[usuario.indiceInsignia % insignias.size]
+                val badge = insignias[indiceInsigniaState % insignias.size]
                 
                 // 3. DIBUJAR LA FOTO DE MANERA OPTIMIZADA
                 Box(
@@ -830,7 +836,15 @@ fun PantallaPerfil(vm: ViewModelDuality) {
                         Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
                         Text(if (vm.esIngles) "Upload Photo" else "Subir Foto", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
-                    OutlinedButton(onClick = { usuario.indiceInsignia = (usuario.indiceInsignia + 1) % insignias.size; vm.mostrarNotificacion(if (vm.esIngles) "Badge updated" else "Insignia actualizada") }, border = BorderStroke(1.dp, DoradoPrimario)) {
+                    OutlinedButton(
+                        onClick = { 
+                            val nuevoIndice = (indiceInsigniaState + 1) % insignias.size
+                            indiceInsigniaState = nuevoIndice
+                            usuario.indiceInsignia = nuevoIndice
+                            vm.mostrarNotificacion(if (vm.esIngles) "Badge updated" else "Insignia actualizada") 
+                        }, 
+                        border = BorderStroke(1.dp, DoradoPrimario)
+                    ) {
                         Icon(Icons.Default.Autorenew, contentDescription = null, tint = DoradoClaro, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
                         Text(if (vm.esIngles) "Rotate" else "Rotar", color = DoradoClaro, fontSize = 12.sp)
                     }
@@ -1063,9 +1077,9 @@ fun PantallaComunidad(vm: ViewModelDuality) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 80.dp) 
             ) {
-                items(vm.postsComunidad.size) { index ->
+                items(vm.postsComunidadLive.size) { index ->
                     TarjetaPost(
-                        post = vm.postsComunidad[index], 
+                        post = vm.postsComunidadLive[index], 
                         vm = vm,
                         onVerRespuestas = { postSeleccionadoParaRespuestas = it }
                     )
@@ -1077,11 +1091,19 @@ fun PantallaComunidad(vm: ViewModelDuality) {
         if (mostrarDialogoCrear) {
             var textoPost by remember { mutableStateOf("") }
             
+            // NUEVO: Variable para guardar la foto y el lanzador de la galería
+            var imagenAdjunta by remember { mutableStateOf<android.net.Uri?>(null) }
+            val selectorGaleria = androidx.activity.compose.rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.GetContent()
+            ) { uri ->
+                imagenAdjunta = uri
+            }
+            
             androidx.compose.ui.window.Dialog(onDismissRequest = { mostrarDialogoCrear = false }) {
                 Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
                     Card(
                         shape = RoundedCornerShape(4.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFEBE1B5)), // Crema Web
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFEBE1B5)), 
                         border = BorderStroke(1.dp, Color(0xFFC7BC8F)),
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -1091,7 +1113,6 @@ fun PantallaComunidad(vm: ViewModelDuality) {
                             Text(if (vm.esIngles) "Write your message" else "Redactar Mensaje", color = Color(0xFF222222), fontSize = 20.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Serif)
                             Spacer(Modifier.height(12.dp))
                             
-                            // Perfil de quien va a publicar (Textos Oscuros)
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
                                 Surface(shape = CircleShape, color = Color(0xFF2B4171), modifier = Modifier.size(32.dp)) {
                                     Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.padding(6.dp))
@@ -1100,14 +1121,13 @@ fun PantallaComunidad(vm: ViewModelDuality) {
                                 Text(vm.usuarioActual?.nombreUsuario ?: "Usuario", color = Color(0xFF222222), fontWeight = FontWeight.Bold)
                             }
                             
-                            // Campo para la descripción (Estilo Tinta sobre Papel)
                             OutlinedTextField(
                                 value = textoPost,
                                 onValueChange = { textoPost = it },
                                 placeholder = { Text(if (vm.esIngles) "Share your discoveries..." else "Comparte tus descubrimientos...", color = Color(0xFF666666)) },
                                 modifier = Modifier.fillMaxWidth().height(140.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color(0xFF8B0000), // Rojo oscuro al escribir
+                                    focusedBorderColor = Color(0xFF8B0000), 
                                     unfocusedBorderColor = Color(0xFFC7BC8F),
                                     focusedTextColor = Color(0xFF222222),
                                     unfocusedTextColor = Color(0xFF222222),
@@ -1120,27 +1140,42 @@ fun PantallaComunidad(vm: ViewModelDuality) {
                             // Botones de Acción
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 OutlinedButton(
-                                    onClick = { vm.mostrarNotificacion("Abrir galería...") },
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF2B4171)), // Azul web
-                                    border = BorderStroke(1.dp, Color(0xFF2B4171)),
+                                    // AHORA SÍ ABRE LA GALERÍA DEL CELULAR
+                                    onClick = { selectorGaleria.launch("image/*") }, 
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        containerColor = if (imagenAdjunta != null) Color(0xFF4CAF50).copy(alpha = 0.1f) else Color.Transparent,
+                                        contentColor = Color(0xFF2B4171)
+                                    ), 
+                                    border = BorderStroke(1.dp, if (imagenAdjunta != null) Color(0xFF4CAF50) else Color(0xFF2B4171)),
                                     modifier = Modifier.weight(1f)
-                                ) { Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                ) { 
+                                    // Cambia a una palomita verde cuando seleccionas foto
+                                    Icon(
+                                        imageVector = if (imagenAdjunta != null) Icons.Default.CheckCircle else Icons.Default.Image, 
+                                        contentDescription = null, 
+                                        tint = if (imagenAdjunta != null) Color(0xFF4CAF50) else Color(0xFF2B4171),
+                                        modifier = Modifier.size(18.dp)
+                                    ) 
+                                }
                                 
                                 Spacer(Modifier.width(8.dp))
                                 
                                 Button(
                                     onClick = { 
-                                        mostrarDialogoCrear = false
-                                        vm.mostrarNotificacion(if (vm.esIngles) "Post published!" else "¡Mensaje publicado!") 
+                                        // AHORA ENVIAMOS EL TEXTO Y LA RUTA DE LA FOTO A FIREBASE
+                                        vm.publicarEnTablon(textoPost, imagenAdjunta?.toString()) {
+                                            textoPost = ""
+                                            imagenAdjunta = null
+                                            mostrarDialogoCrear = false
+                                        }
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA02020), contentColor = Color.White), // Rojo Cinta
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA02020), contentColor = Color.White),
                                     modifier = Modifier.weight(2f)
                                 ) { Text(if (vm.esIngles) "PUBLISH" else "PUBLICAR", fontWeight = FontWeight.Bold) }
                             }
                         }
                     }
                     
-                    // Listón Rojo Banderín superior
                     val FormaBanderin = GenericShape { size, _ ->
                         moveTo(0f, 0f); lineTo(size.width, 0f); lineTo(size.width, size.height); lineTo(size.width / 2f, size.height - 15f); lineTo(0f, size.height); close()
                     }

@@ -68,6 +68,9 @@ class ViewModelDuality : ViewModel() {
             .build()
         db.firestoreSettings = settings
 
+        // Escuchar los mensajes de la comunidad en tiempo real
+        inicializarTablonGremio()
+
         // Verificar si ya hay una sesión activa en Firebase
         val currentUser = auth.currentUser
         if (currentUser != null) {
@@ -347,7 +350,7 @@ class ViewModelDuality : ViewModel() {
     )
 
     // =========================================================================
-    // COMUNIDAD (TABLÓN DEL GREMIO) - DATOS DE PRUEBA
+    // COMUNIDAD (TABLÓN DEL GREMIO) - CONEXIÓN A FIREBASE FIRESTORE
     // =========================================================================
     data class ComentarioGremio(val autor: String, val insignia: androidx.compose.ui.graphics.vector.ImageVector, val color: androidx.compose.ui.graphics.Color, val texto: String, val tiempo: String)
 
@@ -359,14 +362,15 @@ class ViewModelDuality : ViewModel() {
         val mensaje: String,
         val imagenAdjuntaRes: Int? = null,
         var honor: Int,
-        var comentarios: List<ComentarioGremio> = emptyList(), // Ahora guarda comentarios reales
+        var comentarios: List<ComentarioGremio> = emptyList(),
         val tiempoEs: String,
         val tiempoEn: String,
         val esOficial: Boolean = false
     )
 
-    val postsComunidad = listOf(
-        PostGremio("1", "Zyren (Admin)", "Primordial de Dualidad", "", "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.", null, 156, 
+    // Posts de muestra (con Administrador)
+    val postsPrueba = listOf(
+        PostGremio("1", "Administrador", "Primordial de Dualidad", "", "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.", null, 156, 
             listOf(ComentarioGremio("Elizaveta_Fan", Icons.Default.AutoAwesome, AzulGremio, "¡Increíble iniciativa! Estaré compartiendo mis teorías pronto.", "Hace 30 min")), 
             "Hace 1 hora", "1 hour ago", true),
         PostGremio("2", "ExploradorNovato", "Iniciado", "", "Ayer estuve cerca del Bosque Occidental (Kairos) y logré tomar esta fotografía de las masas oscuras antes de escapar. ¡Tengan cuidado!", R.drawable.bosque_oscuro_combate, 89, 
@@ -377,4 +381,78 @@ class ViewModelDuality : ViewModel() {
             "Hace 3 horas", "3 hours ago"),
         PostGremio("3", "Elizaveta_Fan", "Mago de Agua", "", "Definitivamente la Iglesia de la Creación oculta algo. Si el Dios del Tiempo sabe la verdad, ¿por qué los exorcistas mienten? ¿Qué opinan ustedes?", null, 45, emptyList(), "Hace 5 horas", "5 hours ago")
     )
+
+    // Inicializamos con los posts de prueba
+    var postsComunidadLive = mutableStateListOf<PostGremio>().apply { addAll(postsPrueba) }
+
+    // Alias de compatibilidad
+    val postsComunidad get() = postsComunidadLive
+
+    // Función 1: ESCUCHAR LOS MENSAJES EN TIEMPO REAL
+    fun inicializarTablonGremio() {
+        db.collection("comunidad_posts")
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                
+                if (snapshot != null && !snapshot.isEmpty) {
+                    postsComunidadLive.clear()
+                    for (doc in snapshot.documents) {
+                        val nombre = doc.getString("autorNombre") ?: "Aventurero"
+                        val titulo = doc.getString("autorTitulo") ?: "Iniciado"
+                        val mensaje = doc.getString("contenido") ?: ""
+                        val honor = doc.getLong("honor")?.toInt() ?: 0
+                        val esAdmin = doc.getBoolean("esOficial") ?: false
+                        
+                        val fechaStr = "Recientemente" 
+                        val fechaStrEn = "Recently"
+
+                        postsComunidadLive.add(
+                            PostGremio(
+                                id = doc.id,
+                                nombreAutor = nombre,
+                                tituloAutor = titulo,
+                                mensaje = mensaje,
+                                honor = honor,
+                                tiempoEs = fechaStr,
+                                tiempoEn = fechaStrEn,
+                                esOficial = esAdmin
+                            )
+                        )
+                    }
+                }
+            }
+    }
+
+    // Función 2: PUBLICAR UN NUEVO MENSAJE (Ahora acepta imágenes)
+    fun publicarEnTablon(mensaje: String, uriImagen: String? = null, alTerminar: () -> Unit) {
+        val usuario = usuarioActual
+        if (usuario == null || mensaje.isBlank()) {
+            mostrarNotificacion(if (esIngles) "Write a message first." else "Escribe un mensaje primero.")
+            return
+        }
+
+        activarAnimacionCarga("Enviando cuervo mensajero...") {
+            val nuevoPost = hashMapOf(
+                "autorId" to (auth.currentUser?.uid ?: "unknown"),
+                "autorNombre" to usuario.nombreUsuario,
+                "autorTitulo" to usuario.tituloOpcional,
+                "contenido" to mensaje,
+                "imagenUri" to (uriImagen ?: ""),
+                "honor" to 0,
+                "esOficial" to (usuario.tituloOpcional.lowercase().contains("admin") || usuario.nombreUsuario.lowercase().contains("administrador") || usuario.nombreUsuario.lowercase().contains("zyren")),
+                "timestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp() 
+            )
+
+            db.collection("comunidad_posts").add(nuevoPost)
+                .addOnSuccessListener {
+                    mostrarNotificacion(if (esIngles) "Post published!" else "¡Mensaje publicado!")
+                    alTerminar()
+                }
+                .addOnFailureListener {
+                    mostrarNotificacion(if (esIngles) "Error publishing." else "Error al publicar.")
+                    alTerminar()
+                }
+        }
+    }
 }

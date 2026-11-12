@@ -62,8 +62,9 @@ dependencies {
     // Firebase BoM (Bill of Materials)
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
 
-    // Autenticación y Base de Datos Firestore
+    // Autenticación, Base de Datos Firestore y Almacenamiento Storage
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
 }
 

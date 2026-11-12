@@ -392,7 +392,7 @@ class ViewModelDuality : ViewModel() {
 
     // Posts de muestra (con Administrador)
     val postsPrueba = listOf(
-        PostGremio("1", "Administrador", "Primordial de Dualidad", "", "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.", null, null, 156, 
+        PostGremio("1", "Administrador", "Primordial de Dualidad", "", "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.", null, null, 0, 
             listOf(ComentarioGremio("Elizaveta_Fan", Icons.Default.AutoAwesome, AzulGremio, "¡Increíble iniciativa! Estaré compartiendo mis teorías pronto.", "Hace 30 min")), 
             "01/01/2025 12:00", true),
         PostGremio("2", "ExploradorNovato", "Iniciado", "", "Ayer estuve cerca del Bosque Occidental (Kairos) y logré tomar esta fotografía de las masas oscuras antes de escapar. ¡Tengan cuidado!", R.drawable.bosque_oscuro_combate, null, 89, 
@@ -430,7 +430,7 @@ class ViewModelDuality : ViewModel() {
                             mensaje = if (esIngles) "Welcome to the Guild Board! Here you can share your findings on corrosion, upload screenshots, and look for allies for expeditions." else "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.",
                             imagenAdjuntaRes = null,
                             imagenUrl = null,
-                            honor = 999,
+                            honor = 0,
                             comentarios = emptyList(),
                             fechaFormateada = "📌 Fijado",
                             esOficial = true

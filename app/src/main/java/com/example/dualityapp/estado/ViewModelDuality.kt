@@ -441,6 +441,7 @@ class ViewModelDuality : ViewModel() {
                     for (doc in snapshot.documents) {
                         val nombre = doc.getString("autorNombre") ?: "Aventurero"
                         val titulo = doc.getString("autorTitulo") ?: "Iniciado"
+                        val avatarFirebase = doc.getString("avatar") ?: ""
                         val mensaje = doc.getString("contenido") ?: ""
                         val uriImagen = doc.getString("imagenUri") // Leemos el link de Storage
                         val honor = doc.getLong("honor")?.toInt() ?: 0
@@ -472,7 +473,7 @@ class ViewModelDuality : ViewModel() {
                                 id = doc.id,
                                 nombreAutor = nombre,
                                 tituloAutor = titulo,
-                                avatarUri = "",
+                                avatarUri = avatarFirebase, // Leemos la foto de perfil desde Firebase
                                 mensaje = mensaje,
                                 imagenAdjuntaRes = null, 
                                 imagenUrl = if (uriImagen.isNullOrBlank()) null else uriImagen, // Pasamos el link
@@ -533,6 +534,7 @@ class ViewModelDuality : ViewModel() {
             "autorId" to (auth.currentUser?.uid ?: "unknown"),
             "autorNombre" to usuario.nombreUsuario,
             "autorTitulo" to usuario.tituloOpcional,
+            "avatar" to (auth.currentUser?.photoUrl?.toString() ?: "/avatarares/turnos_slime_verde.webp"),
             "contenido" to mensaje,
             "imagenUri" to urlPublicaImagen, // Aquí viaja el texto Base64 de la imagen
             "honor" to 0,

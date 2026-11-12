@@ -138,7 +138,7 @@ fun PantallaWiki(vm: ViewModelDuality) {
         Spacer(Modifier.height(24.dp))
 
         // --- CONTENEDOR DEL PERGAMINO GIGANTE ---
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 16.dp)) {
             
             // Cuerpo del Pergamino
             Card(
@@ -146,43 +146,48 @@ fun PantallaWiki(vm: ViewModelDuality) {
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFEBE1B5)), // Crema Web
                 border = BorderStroke(1.dp, Color(0xFFC7BC8F)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                modifier = Modifier.fillMaxSize().padding(top = 18.dp) // Deja espacio para el rodillo superior
+                modifier = Modifier.fillMaxSize()
             ) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, top = 40.dp, bottom = 40.dp)) {
-                    
-                    // Cabecera del Pergamino
-                    Text(
-                        text = if (vm.esIngles) "Section: $tituloSeccion" else "Sección: $tituloSeccion", 
-                        color = Color(0xFF222222), 
-                        fontSize = 24.sp, 
-                        fontWeight = FontWeight.Bold, 
-                        fontFamily = FontFamily.Serif
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(descripcionSeccion, color = Color(0xFF444444), fontSize = 13.sp, fontFamily = FontFamily.Serif)
-                    Spacer(Modifier.height(12.dp))
-                    
-                    // Etiqueta de cantidad de registros
-                    Surface(color = Color(0xFF334A80), shape = RoundedCornerShape(4.dp)) { // Azul claro web
-                        Text("${itemsFiltrados.size} ${if(vm.esIngles) "Records" else "Registros"}", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                androidx.compose.foundation.lazy.LazyColumn(
+                    contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 48.dp, bottom = 60.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    item {
+                        // Cabecera del Pergamino
+                        Text(
+                            text = if (vm.esIngles) "Section: $tituloSeccion" else "Sección: $tituloSeccion", 
+                            color = Color(0xFF222222), 
+                            fontSize = 24.sp, 
+                            fontWeight = FontWeight.Bold, 
+                            fontFamily = FontFamily.Serif
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(descripcionSeccion, color = Color(0xFF444444), fontSize = 13.sp, fontFamily = FontFamily.Serif)
+                        Spacer(Modifier.height(12.dp))
+                        
+                        // Etiqueta de cantidad de registros
+                        Surface(color = Color(0xFF334A80), shape = RoundedCornerShape(4.dp)) { // Azul claro web
+                            Text("${itemsFiltrados.size} ${if(vm.esIngles) "Records" else "Registros"}", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                        }
+                        
+                        Spacer(Modifier.height(16.dp))
+                        HorizontalDivider(color = Color(0xFFC7BC8F), thickness = 1.dp)
                     }
-                    
-                    Spacer(Modifier.height(20.dp))
-                    Divider(color = Color(0xFFC7BC8F), thickness = 1.dp)
-                    Spacer(Modifier.height(20.dp))
 
                     // --- TARJETAS DE CLASES/PERSONAJES ---
-                    itemsFiltrados.forEach { item ->
+                    items(itemsFiltrados.size) { index ->
+                        val item = itemsFiltrados[index]
                         val esFav = vm.idsFavoritos.contains(item.id)
                         
                         Surface(
                             color = Color(0xFFDFD4A3), // Crema oscuro para la tarjeta
                             shape = RoundedCornerShape(8.dp),
                             border = BorderStroke(1.dp, Color(0xFFC7BC8F)),
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).clickable { vm.itemInspeccionado = item }
+                            modifier = Modifier.fillMaxWidth().clickable { vm.itemInspeccionado = item }
                         ) {
                             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
-                                // VISOR DE IMAGEN O ICONO (Cuadrado con esquinas redondas azules, como en la web)
+                                // VISOR DE IMAGEN O ICONO
                                 Surface(
                                     shape = RoundedCornerShape(8.dp), 
                                     color = Color(0xFF334A80), // Azul brillante
@@ -193,7 +198,7 @@ fun PantallaWiki(vm: ViewModelDuality) {
                                         if (item.imagenRes != null) {
                                             Image(painter = painterResource(id = item.imagenRes), contentDescription = item.nombre, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                                         } else {
-                                            Icon(item.icono, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp)) // Icono blanco
+                                            Icon(item.icono, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
                                         }
                                     }
                                 }
@@ -207,13 +212,13 @@ fun PantallaWiki(vm: ViewModelDuality) {
                                             Icon(if (esFav) Icons.Default.Star else Icons.Default.StarBorder, contentDescription = null, tint = if (esFav) Color(0xFFA02020) else Color(0xFF888888))
                                         }
                                     }
-                                    Text(item.subtitulo, color = Color(0xFFA02020), fontWeight = FontWeight.Bold, fontSize = 11.sp) // Subtítulo Rojo Web
+                                    Text(item.subtitulo, color = Color(0xFFA02020), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                                     Spacer(Modifier.height(8.dp))
                                     Text(item.descripcion, color = Color(0xFF333333), fontSize = 13.sp, fontFamily = FontFamily.Serif, lineHeight = 18.sp)
                                     Spacer(Modifier.height(12.dp))
-                                    Divider(color = Color(0xFFC7BC8F).copy(alpha = 0.5f), thickness = 1.dp) // Línea divisoria muy sutil
+                                    HorizontalDivider(color = Color(0xFFC7BC8F).copy(alpha = 0.5f), thickness = 1.dp)
                                     Spacer(Modifier.height(8.dp))
-                                    Text(item.extra, color = Color(0xFF2B4171), fontWeight = FontWeight.Bold, fontSize = 11.sp) // Extra Azul oscuro
+                                    Text(item.extra, color = Color(0xFF2B4171), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                                 }
                             }
                         }
@@ -223,33 +228,25 @@ fun PantallaWiki(vm: ViewModelDuality) {
 
             // Rodillo Dorado Superior (Simula el eje del pergamino)
             Surface(
-                color = Color(0xFFEAD48F), // Dorado claro
-                shape = RoundedCornerShape(50), // Bordes súper redondos como cilindro
-                shadowElevation = 12.dp,
-                modifier = Modifier.fillMaxWidth().height(18.dp).offset(y = 10.dp).padding(horizontal = 4.dp)
+                color = Color(0xFFEAD48F), shape = RoundedCornerShape(50), shadowElevation = 6.dp,
+                modifier = Modifier.fillMaxWidth().height(14.dp).align(Alignment.TopCenter).offset(y = (-7).dp).padding(horizontal = 4.dp)
             ) {}
-            // Tapones del Rodillo Superior
-            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(12.dp).height(24.dp).align(Alignment.TopStart).offset(y = 7.dp)) {}
-            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(12.dp).height(24.dp).align(Alignment.TopEnd).offset(y = 7.dp)) {}
+            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(10.dp).height(20.dp).align(Alignment.TopStart).offset(y = (-10).dp)) {}
+            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(10.dp).height(20.dp).align(Alignment.TopEnd).offset(y = (-10).dp)) {}
 
-            // EL LISTÓN ROJO CON FORMA DE BANDERÍN (Muerde el rodillo superior)
+            // EL LISTÓN ROJO CON FORMA DE BANDERÍN
             Surface(
-                color = Color(0xFFA02020), // Rojo profundo web
-                shape = FormaBanderin,
-                shadowElevation = 6.dp,
-                modifier = Modifier.width(36.dp).height(50.dp).align(Alignment.TopCenter).offset(y = 10.dp)
+                color = Color(0xFFA02020), shape = FormaBanderin, shadowElevation = 4.dp,
+                modifier = Modifier.width(32.dp).height(46.dp).align(Alignment.TopCenter).offset(y = (-7).dp)
             ) {}
             
             // Rodillo Inferior
             Surface(
-                color = Color(0xFFEAD48F), // Dorado claro
-                shape = RoundedCornerShape(50), 
-                shadowElevation = 12.dp,
-                modifier = Modifier.fillMaxWidth().height(18.dp).align(Alignment.BottomCenter).offset(y = (-10).dp).padding(horizontal = 4.dp)
+                color = Color(0xFFEAD48F), shape = RoundedCornerShape(50), shadowElevation = 6.dp,
+                modifier = Modifier.fillMaxWidth().height(14.dp).align(Alignment.BottomCenter).offset(y = 7.dp).padding(horizontal = 4.dp)
             ) {}
-            // Tapones del Rodillo Inferior
-            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(12.dp).height(24.dp).align(Alignment.BottomStart).offset(y = (-7).dp)) {}
-            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(12.dp).height(24.dp).align(Alignment.BottomEnd).offset(y = (-7).dp)) {}
+            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(10.dp).height(20.dp).align(Alignment.BottomStart).offset(y = 4.dp)) {}
+            Surface(color = Color(0xFFD4AF37), shape = RoundedCornerShape(4.dp), modifier = Modifier.width(10.dp).height(20.dp).align(Alignment.BottomEnd).offset(y = 4.dp)) {}
         }
     }
 

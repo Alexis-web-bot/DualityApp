@@ -578,7 +578,8 @@ fun PantallaRecuperar(vm: ViewModelDuality) {
                                     correo = mail,
                                     alExito = {
                                         hayError = false
-                                        mensajeEstado = "Enlace enviado. Revisa tu bandeja de entrada."
+                                        vm.mostrarNotificacion("Enlace enviado. Revisa tu bandeja de entrada.")
+                                        vm.pantallaAcceso = "LOGIN"
                                     },
                                     alError = { err -> 
                                         hayError = true

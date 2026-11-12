@@ -388,19 +388,39 @@ class ViewModelDuality : ViewModel() {
     // Alias de compatibilidad
     val postsComunidad get() = postsComunidadLive
 
-    // Función 1: ESCUCHAR LOS MENSAJES EN TIEMPO REAL
+    // Función 1: ESCUCHAR LOS MENSAJES EN TIEMPO REAL Y ANCLAR EL DEL ADMIN
     fun inicializarTablonGremio() {
         db.collection("comunidad_posts")
             .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
                 
-                if (snapshot != null && !snapshot.isEmpty) {
+                if (snapshot != null) {
                     postsComunidadLive.clear()
+                    
+                    // 1. INYECTAMOS EL MENSAJE FIJO DEL ADMINISTRADOR HASTA ARRIBA
+                    postsComunidadLive.add(
+                        PostGremio(
+                            id = "post_fijo_admin",
+                            nombreAutor = "Administrador",
+                            tituloAutor = "Primordial de Dualidad",
+                            avatarUri = "",
+                            mensaje = if (esIngles) "Welcome to the Guild Board! Here you can share your findings on corrosion, upload screenshots, and look for allies for expeditions." else "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.",
+                            imagenAdjuntaRes = null,
+                            honor = 999, // Un número alto de honor para el Admin
+                            comentarios = emptyList(),
+                            tiempoEs = "📌 Fijado",
+                            tiempoEn = "📌 Pinned",
+                            esOficial = true
+                        )
+                    )
+
+                    // 2. LUEGO CARGAMOS TODOS LOS MENSAJES REALES DE FIREBASE
                     for (doc in snapshot.documents) {
                         val nombre = doc.getString("autorNombre") ?: "Aventurero"
                         val titulo = doc.getString("autorTitulo") ?: "Iniciado"
                         val mensaje = doc.getString("contenido") ?: ""
+                        val uriImagen = doc.getString("imagenUri") ?: ""
                         val honor = doc.getLong("honor")?.toInt() ?: 0
                         val esAdmin = doc.getBoolean("esOficial") ?: false
                         
@@ -412,8 +432,12 @@ class ViewModelDuality : ViewModel() {
                                 id = doc.id,
                                 nombreAutor = nombre,
                                 tituloAutor = titulo,
+                                avatarUri = "", // En el futuro aquí iría la foto de perfil del autor
                                 mensaje = mensaje,
+                                // Si hay una ruta de imagen de Firebase, se manejaría con Coil. Por ahora lo dejamos nulo para las de internet.
+                                imagenAdjuntaRes = null, 
                                 honor = honor,
+                                comentarios = emptyList(), // En el futuro se leerían de una subcolección
                                 tiempoEs = fechaStr,
                                 tiempoEn = fechaStrEn,
                                 esOficial = esAdmin

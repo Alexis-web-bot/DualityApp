@@ -1,11 +1,14 @@
 package com.example.dualityapp.pantallas
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,12 +23,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -34,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import com.example.dualityapp.R
 import com.example.dualityapp.estado.ViewModelDuality
 import com.example.dualityapp.tema.*
@@ -620,54 +630,189 @@ fun PantallaRecuperar(vm: ViewModelDuality) {
 // =========================================================================
 @Composable
 fun PantallaSplash(onTiempoTerminado: () -> Unit) {
-    // LaunchedEffect arranca automáticamente cuando la pantalla se muestra
+    // 1. Temporizador de 5 segundos
     LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(5000L) // 5000 milisegundos = 5 segundos exactos
-        onTiempoTerminado() // Llama a la acción de avanzar al login
+        delay(5000L)
+        onTiempoTerminado()
     }
+
+    // 2. Motor de animaciones infinitas para el dragón y el aura
+    val transicionInfinita = rememberInfiniteTransition(label = "splash_anim")
+
+    // Escala de pulso (respiración del dragón)
+    val escalaPulso by transicionInfinita.animateFloat(
+        initialValue = 0.94f,
+        targetValue = 1.06f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulso"
+    )
+
+    // Rotación continua para el anillo mágico exterior
+    val rotacionAnillo by transicionInfinita.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(8000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotacion"
+    )
+
+    // Brillo del aura y texto
+    val alfaBrillo by transicionInfinita.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "brillo"
+    )
+
+    // Animación de entrada (Fade-in inicial)
+    var iniciarEntrada by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { iniciarEntrada = true }
+    val alfaEntrada by animateFloatAsState(
+        targetValue = if (iniciarEntrada) 1f else 0f,
+        animationSpec = tween(1200),
+        label = "entrada"
+    )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0C0814)), // Fondo ultra oscuro de Aethelgard
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFF192341), // Azul marino de Duality en el centro
+                        Color(0xFF0C0814)  // Oscuridad profunda en los bordes
+                    ),
+                    radius = 900f
+                )
+            ),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            // Título de la app
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.alpha(alfaEntrada)
+        ) {
+            // --- CONTENEDOR DEL DRAGÓN DORADO ANIMADO ---
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(220.dp)
+            ) {
+                // Capa 1: Aura mágica pulsante detrás del dragón
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .scale(escalaPulso * 1.15f)
+                        .alpha(alfaBrillo * 0.5f)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    Color(0xFFD4AF37).copy(alpha = 0.6f),
+                                    Color(0xFFA02020).copy(alpha = 0.2f),
+                                    Color.Transparent
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+
+                // Capa 2: Anillo rúnico giratorio (Dorado y Carmesí)
+                Canvas(
+                    modifier = Modifier
+                        .size(185.dp)
+                        .rotate(rotacionAnillo)
+                ) {
+                    drawArc(
+                        brush = Brush.sweepGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color(0xFFD4AF37),
+                                Color(0xFFA02020),
+                                Color(0xFFD4AF37),
+                                Color.Transparent
+                            )
+                        ),
+                        startAngle = 0f,
+                        sweepAngle = 280f,
+                        useCenter = false,
+                        style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                }
+
+                // Capa 3: Medallón con el Dragón Dorado
+                // NOTA: Cambia 'R.drawable.logo_dragon' por el nombre exacto de tu imagen del dragón en drawable
+                Image(
+                    painter = painterResource(id = com.example.dualityapp.R.drawable.ouroboros_dorado),
+                    contentDescription = "Emblema del Dragón de Duality",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(145.dp)
+                        .scale(escalaPulso)
+                        .clip(CircleShape)
+                        .border(3.dp, Color(0xFFD4AF37), CircleShape)
+                )
+            }
+
+            Spacer(Modifier.height(28.dp))
+
+            // --- TÍTULO Y SUBTÍTULO ---
             Text(
                 text = "DUALITY",
-                color = Color(0xFFD4AF37), // Dorado primario
-                fontSize = 52.sp,
+                color = Color(0xFFD4AF37),
+                fontSize = 48.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = FontFamily.Serif,
-                letterSpacing = 8.sp
+                letterSpacing = 10.sp
             )
-            
+
+            Spacer(Modifier.height(6.dp))
+
+            // Línea divisoria ornamental
+            Box(
+                modifier = Modifier
+                    .width(180.dp)
+                    .height(1.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color.Transparent, Color(0xFFD4AF37), Color.Transparent)
+                        )
+                    )
+            )
+
             Spacer(Modifier.height(8.dp))
-            
+
             Text(
-                text = "OFFICIAL WIKI GRIMOIRE",
-                color = Color.LightGray,
+                text = "GRIMORIO WIKI OFICIAL",
+                color = Color(0xFFEBE1B5),
                 fontSize = 12.sp,
-                letterSpacing = 3.sp
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 4.sp
             )
-            
-            Spacer(Modifier.height(64.dp))
-            
-            // Animación circular de carga (Spinner)
+
+            Spacer(Modifier.height(56.dp))
+
+            // --- INDICADOR DE CARGA INFERIOR ---
             CircularProgressIndicator(
-                color = Color(0xFFA02020), // Rojo Cinta
+                color = Color(0xFFA02020),
+                trackColor = Color(0xFFD4AF37).copy(alpha = 0.2f),
                 strokeWidth = 3.dp,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(34.dp)
             )
-            
-            Spacer(Modifier.height(16.dp))
-            
+
+            Spacer(Modifier.height(14.dp))
+
             Text(
-                text = "Abriendo el grimorio...",
-                color = Color.Gray,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                fontSize = 14.sp
+                text = "Despertando el bucle temporal...",
+                color = Color(0xFFEBE1B5).copy(alpha = alfaBrillo),
+                fontStyle = FontStyle.Italic,
+                fontFamily = FontFamily.Serif,
+                fontSize = 13.sp
             )
         }
     }

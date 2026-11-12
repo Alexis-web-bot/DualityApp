@@ -1120,6 +1120,7 @@ fun PantallaComunidad(vm: ViewModelDuality) {
 
         // --- 1. DIÁLOGO ESTILO PERGAMINO PARA CREAR POST ---
         if (mostrarDialogoCrear) {
+            val contextoActual = LocalContext.current
             var textoPost by remember { mutableStateOf("") }
             var imagenAdjunta by remember { mutableStateOf<android.net.Uri?>(null) }
 
@@ -1214,8 +1215,9 @@ fun PantallaComunidad(vm: ViewModelDuality) {
                                 
                                 Button(
                                     onClick = { 
-                                        // AHORA ENVIAMOS EL TEXTO Y EL URI DE LA FOTO A FIREBASE
-                                        vm.publicarEnTablon(textoPost, imagenAdjunta) {
+                                        // Pasamos 'contextoActual' para que pueda leer la uri localmente
+                                        val contextoActual = contextoActual
+                                        vm.publicarEnTablon(textoPost, imagenAdjunta, contextoActual) {
                                             textoPost = ""
                                             imagenAdjunta = null
                                             mostrarDialogoCrear = false

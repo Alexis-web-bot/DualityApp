@@ -487,8 +487,8 @@ class ViewModelDuality : ViewModel() {
             }
     }
 
-    // Función 2: PUBLICAR UN NUEVO MENSAJE (Ahora con subida física de imágenes a Storage)
-    fun publicarEnTablon(mensaje: String, uriImagen: android.net.Uri? = null, alTerminar: () -> Unit) {
+    // Función 2: PUBLICAR UN NUEVO MENSAJE (Convirtiendo la imagen a Base64 localmente)
+    fun publicarEnTablon(mensaje: String, uriImagen: android.net.Uri? = null, contexto: android.content.Context? = null, alTerminar: () -> Unit) {
         val usuario = usuarioActual
         if (usuario == null || mensaje.isBlank()) {
             mostrarNotificacion(if (esIngles) "Write a message first." else "Escribe un mensaje primero.")
@@ -496,30 +496,37 @@ class ViewModelDuality : ViewModel() {
         }
 
         activarAnimacionCarga("Enviando cuervo mensajero...") {
-            if (uriImagen != null) {
-                // 1. SI HAY IMAGEN, LA SUBIMOS PRIMERO A FIREBASE STORAGE
-                val nombreArchivo = "post_${System.currentTimeMillis()}.jpg"
-                val ref = storage.reference.child("comunidad_imagenes/$nombreArchivo")
+            if (uriImagen != null && contexto != null) {
+                try {
+                    // 1. CONVERTIMOS LA IMAGEN SELECCIONADA A TEXTO BASE64
+                    val inputStream = contexto.contentResolver.openInputStream(uriImagen)
+                    val bytes = inputStream?.readBytes()
+                    inputStream?.close()
 
-                ref.putFile(uriImagen)
-                    .addOnSuccessListener {
-                        // 2. OBTENEMOS EL LINK PÚBLICO DE DESCARGA
-                        ref.downloadUrl.addOnSuccessListener { urlDescarga: android.net.Uri ->
-                            guardarPostFirestore(mensaje, urlDescarga.toString(), alTerminar)
-                        }
+                    if (bytes != null) {
+                        // Comprimimos un poco la imagen para que pese menos en la base de datos
+                        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        val outputStream = java.io.ByteArrayOutputStream()
+                        bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 50, outputStream) // 50% de calidad óptima
+                        val bytesComprimidos = outputStream.toByteArray()
+                        
+                        val imagenBase64 = "data:image/jpeg;base64," + android.util.Base64.encodeToString(bytesComprimidos, android.util.Base64.DEFAULT)
+
+                        // 2. GUARDAMOS EL TEXTO BASE64 EN FIRESTORE DIRECTAMENTE
+                        guardarPostFirestore(mensaje, imagenBase64, alTerminar)
+                    } else {
+                        guardarPostFirestore(mensaje, "", alTerminar)
                     }
-                    .addOnFailureListener { e: Exception ->
-                        mostrarNotificacion(if (esIngles) "Error uploading image." else "Error al subir la imagen: ${e.message}")
-                        alTerminar()
-                    }
+                } catch (e: Exception) {
+                    mostrarNotificacion("Error al procesar imagen: ${e.localizedMessage}")
+                    alTerminar()
+                }
             } else {
-                // SI NO HAY IMAGEN, GUARDAMOS EL POST DIRECTO
                 guardarPostFirestore(mensaje, "", alTerminar)
             }
         }
     }
 
-    // Función auxiliar para guardar el texto en la base de datos
     private fun guardarPostFirestore(mensaje: String, urlPublicaImagen: String, alTerminar: () -> Unit) {
         val usuario = usuarioActual ?: return
         val nuevoPost = hashMapOf(
@@ -527,9 +534,9 @@ class ViewModelDuality : ViewModel() {
             "autorNombre" to usuario.nombreUsuario,
             "autorTitulo" to usuario.tituloOpcional,
             "contenido" to mensaje,
-            "imagenUri" to urlPublicaImagen, // <--- AQUÍ GUARDAMOS EL LINK PÚBLICO
+            "imagenUri" to urlPublicaImagen, // Aquí viaja el texto Base64 de la imagen
             "honor" to 0,
-            "esOficial" to (usuario.tituloOpcional.lowercase().contains("admin") || usuario.nombreUsuario.lowercase().contains("administrador") || usuario.nombreUsuario.lowercase().contains("zyren")),
+            "esOficial" to (usuario.tituloOpcional.lowercase().contains("admin") || usuario.nombreUsuario.lowercase().contains("zyren")),
             "timestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp()
         )
 

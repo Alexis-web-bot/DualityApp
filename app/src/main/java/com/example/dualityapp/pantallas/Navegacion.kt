@@ -167,6 +167,7 @@ fun ScaffoldPrincipalApp(vm: ViewModelDuality) {
                         Triple(0, if (vm.esIngles) "Grimoire" else "Grimorio", Icons.Rounded.AutoStories),
                         Triple(1, if (vm.esIngles) "Map" else "Mapa", Icons.Rounded.Explore),
                         Triple(2, if (vm.esIngles) "Loop" else "Bucle", Icons.Rounded.HourglassBottom),
+                        Triple(4, if (vm.esIngles) "Tavern" else "Taberna", Icons.Rounded.Forum), // <--- NUEVA PESTAÑA COMUNIDAD
                         Triple(3, if (vm.esIngles) "Profile" else "Perfil", Icons.Rounded.Shield)
                     )
 
@@ -213,6 +214,7 @@ fun ScaffoldPrincipalApp(vm: ViewModelDuality) {
                     0 -> PantallaWiki(vm)
                     1 -> PantallaMapa(vm)
                     2 -> PantallaBiomas(vm)
+                    4 -> PantallaComunidad(vm) // <--- LLAMADA A LA NUEVA PANTALLA
                     3 -> PantallaPerfil(vm)
                 }
             }

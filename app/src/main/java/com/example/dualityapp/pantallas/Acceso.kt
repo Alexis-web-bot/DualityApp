@@ -185,17 +185,7 @@ fun PantallaLogin(vm: ViewModelDuality) {
 
                 Spacer(Modifier.height(6.dp))
 
-                // Autocompletar Demo
-                TextButton(
-                    onClick = {
-                        correo = "demo@duality.com"
-                        contrasena = "123456"
-                        mensajeError = null
-                    },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Usar cuenta de prueba", color = DoradoClaro, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                }
+
 
                 Spacer(Modifier.height(12.dp))
 
@@ -246,6 +236,24 @@ fun PantallaLogin(vm: ViewModelDuality) {
                     TextButton(onClick = { vm.pantallaAcceso = "RECUPERAR" }) {
                         Text("¿Olvidaste tu clave?", color = Color.LightGray, fontSize = 11.sp)
                     }
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                // --- SELLO DE SEGURIDAD ---
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.GppGood, contentDescription = "Seguridad", tint = Color(0xFF4CAF50), modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = "Conexión encriptada de extremo a extremo", 
+                        color = Color.DarkGray, 
+                        fontSize = 10.sp, 
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -448,6 +456,24 @@ fun PantallaRegistro(vm: ViewModelDuality) {
                         Spacer(Modifier.width(6.dp))
                         Text("Volver a Iniciar Sesión", color = DoradoClaro, fontWeight = FontWeight.Bold)
                     }
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                // --- SELLO DE SEGURIDAD ---
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.GppGood, contentDescription = "Seguridad", tint = Color(0xFF4CAF50), modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = "Conexión encriptada de extremo a extremo", 
+                        color = Color.DarkGray, 
+                        fontSize = 10.sp, 
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

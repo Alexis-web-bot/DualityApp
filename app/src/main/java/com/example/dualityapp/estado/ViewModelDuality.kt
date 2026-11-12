@@ -59,6 +59,15 @@ class ViewModelDuality : ViewModel() {
     var indiceBiomaActual by mutableStateOf(0)
 
     init {
+        // =======================================================
+        // CONFIGURACIÓN DE CACHÉ LOCAL (MODO OFFLINE)
+        // =======================================================
+        val settings = com.google.firebase.firestore.FirebaseFirestoreSettings.Builder()
+            // Configuración de persistencia y caché local
+            .setLocalCacheSettings(com.google.firebase.firestore.PersistentCacheSettings.newBuilder().build())
+            .build()
+        db.firestoreSettings = settings
+
         // Verificar si ya hay una sesión activa en Firebase
         val currentUser = auth.currentUser
         if (currentUser != null) {
@@ -114,8 +123,18 @@ class ViewModelDuality : ViewModel() {
                     )
                     alExito()
                 }
-                .addOnFailureListener { _ ->
-                    alError("Error de autenticación. Verifica tus credenciales o tu conexión.")
+                .addOnFailureListener { e ->
+                    // TRADUCTOR DE ERRORES DE FIREBASE
+                    val mensaje = e.message?.lowercase() ?: ""
+                    val errorTraducido = when {
+                        mensaje.contains("invalid-credential") || mensaje.contains("invalid_login_credentials") -> "El correo o la contraseña rúnica son incorrectos."
+                        mensaje.contains("user-not-found") -> "No existe ningún aventurero registrado con este correo."
+                        mensaje.contains("wrong-password") -> "La contraseña rúnica es incorrecta."
+                        mensaje.contains("network-request-failed") -> "La conexión con el Reloj Astral falló. Revisa tu internet."
+                        mensaje.contains("too-many-requests") -> "Demasiados intentos fallidos. El gremio ha bloqueado el acceso temporalmente."
+                        else -> "Credenciales inválidas o error de conexión."
+                    }
+                    alError(errorTraducido)
                 }
         }
     }
@@ -131,16 +150,23 @@ class ViewModelDuality : ViewModel() {
                         contrasena = pass,
                         tituloOpcional = titulo
                     )
-
-                    // Guardar metadatos adicionales en Firestore
+                    
                     db.collection("usuarios").document(firebaseUser?.uid ?: "unknown")
                         .set(mapOf("nombre" to nombre, "titulo" to titulo, "correo" to correo))
-
+                    
                     usuarioActual = nuevoUsuario
                     alExito()
                 }
-                .addOnFailureListener { _ ->
-                    alError("Error al registrar. Verifica tu conexión o si el correo ya está en uso.")
+                .addOnFailureListener { e ->
+                    // TRADUCTOR DE ERRORES DE FIREBASE AL REGISTRAR
+                    val mensaje = e.message?.lowercase() ?: ""
+                    val errorTraducido = when {
+                        mensaje.contains("email-already-in-use") -> "El correo ya está registrado en los archivos de Aethelgard."
+                        mensaje.contains("invalid-email") -> "El formato del correo es inválido."
+                        mensaje.contains("network-request-failed") -> "La conexión falló. Revisa tu internet."
+                        else -> "Error al inscribir tu alma en el Gremio."
+                    }
+                    alError(errorTraducido)
                 }
         }
     }
@@ -318,5 +344,37 @@ class ViewModelDuality : ViewModel() {
     private val biomasEn = listOf(
         DiapositivaBioma("Hidden City", "TUTORIAL", "Kairos (Lv. 1-5)", "Relative Peace", "Refuge where humans and hybrids coexist.", listOf(EsmeraldaGremio, AzulProfundo), R.drawable.bosque_combate),
         DiapositivaBioma("Contaminated Paths", "CORROSION", "Valcordia (Lv. 6)", "Dark Masses", "Zones affected by the void.", listOf(Color(0xFF115E59), AzulProfundo), R.drawable.bosque_oscuro_combate)
+    )
+
+    // =========================================================================
+    // COMUNIDAD (TABLÓN DEL GREMIO) - DATOS DE PRUEBA
+    // =========================================================================
+    data class ComentarioGremio(val autor: String, val insignia: androidx.compose.ui.graphics.vector.ImageVector, val color: androidx.compose.ui.graphics.Color, val texto: String, val tiempo: String)
+
+    data class PostGremio(
+        val id: String,
+        val nombreAutor: String,
+        val tituloAutor: String,
+        val avatarUri: String = "",
+        val mensaje: String,
+        val imagenAdjuntaRes: Int? = null,
+        var honor: Int,
+        var comentarios: List<ComentarioGremio> = emptyList(), // Ahora guarda comentarios reales
+        val tiempoEs: String,
+        val tiempoEn: String,
+        val esOficial: Boolean = false
+    )
+
+    val postsComunidad = listOf(
+        PostGremio("1", "Zyren (Admin)", "Primordial de Dualidad", "", "¡Bienvenidos al Tablón del Gremio! Aquí podrán compartir sus hallazgos sobre la corrosión, subir capturas y buscar aliados para expediciones.", null, 156, 
+            listOf(ComentarioGremio("Elizaveta_Fan", Icons.Default.AutoAwesome, AzulGremio, "¡Increíble iniciativa! Estaré compartiendo mis teorías pronto.", "Hace 30 min")), 
+            "Hace 1 hora", "1 hour ago", true),
+        PostGremio("2", "ExploradorNovato", "Iniciado", "", "Ayer estuve cerca del Bosque Occidental (Kairos) y logré tomar esta fotografía de las masas oscuras antes de escapar. ¡Tengan cuidado!", R.drawable.bosque_oscuro_combate, 89, 
+            listOf(
+                ComentarioGremio("Rasku_Pro", Icons.Default.Bolt, EsmeraldaGremio, "Hermano, tuviste suerte de salir vivo de ahí. Esas cosas son letales.", "Hace 2 horas"),
+                ComentarioGremio("Gral_Calabaza", Icons.Default.Shield, RojoCinta, "Eviten esa zona por ahora. Enviaremos un escuadrón de limpieza.", "Hace 1 hora")
+            ), 
+            "Hace 3 horas", "3 hours ago"),
+        PostGremio("3", "Elizaveta_Fan", "Mago de Agua", "", "Definitivamente la Iglesia de la Creación oculta algo. Si el Dios del Tiempo sabe la verdad, ¿por qué los exorcistas mienten? ¿Qué opinan ustedes?", null, 45, emptyList(), "Hace 5 horas", "5 hours ago")
     )
 }
